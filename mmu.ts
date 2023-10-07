@@ -48,7 +48,7 @@ export class GameBoyMMU extends MMU {
         }
 
         if (this.#memory[i] === this.#UNUSABLE_MEMORY) {
-            throw new Error(`Invalid attempt to read unusable memory area: 0x${addr.toString(16)}`);
+            throw new Error(`Invalid attempt to access unusable memory area: 0x${addr.toString(16)}`);
         }
 
         return [i, addr - (count - this.#memory[i].length)];
@@ -64,6 +64,7 @@ export class GameBoyMMU extends MMU {
     }
     writeByte(addr: number, val: number): void {
         let [memoryIndex, refinedAddr] = this.transformAddr(addr);
+
         this.#memory[memoryIndex][refinedAddr] = val;
     }
     writeDoubleByte(addr: number, val: number): void {
