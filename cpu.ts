@@ -25,9 +25,29 @@ class Z80 {
                     .forEach(key => this[resetKey][key] = 0)
             })
     }
+
+    clearFlag() {
+        this.registers.f = 0;
+    }
+
+    setZeroFlag() {
+        this.registers.f |= 0x80;
+    }
+
+    setSubstractionFlag() {
+        this.registers.f |= 0x40;
+    }
+
+    setHalfCarryFlag() {
+        this.registers.f |= 0x20;
+    }
+
+    setCarryFlag() {
+        this.registers.f |= 0x10;
+    }
 }
 
-abstract class MMU {
+export abstract class MMU {
     abstract readByte(addr: number): number;
     abstract writeByte(addr: number, val: number): void;
 
