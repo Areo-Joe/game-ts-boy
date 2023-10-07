@@ -6,23 +6,23 @@ class Z80 {
         this.memory = mmu;
     }
 
-    registers: {
+    registers = {
         a: 0, b: 0, c: 0, d: 0, e: 0, h: 0, l: 0, // for computation
         f: 0, // flag,
         sp: 0, // stack pointer
     }
 
-    clock: {
+    clock = {
         last: 0, // time to run last instruction
         total: 0 // time total
     }
 
     reset() {
-        ["register", "clock"]
+        (["register", "clock"] as Array<keyof this>)
             .forEach(resetKey => {
                 Object
-                    .keys(this[resetKey])
-                    .forEach(key => this[resetKey][key] = 0)
+                    .keys(this[resetKey] as Record<string, number>)
+                    .forEach(key => (this[resetKey] as Record<string, number>)[key] = 0)
             })
     }
 

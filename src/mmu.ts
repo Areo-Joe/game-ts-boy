@@ -71,4 +71,9 @@ export class GameBoyMMU extends MMU {
         this.writeByte(addr, val);
         this.writeByte(addr + 1, val >> 8);
     }
+
+    load(file: ArrayBuffer) {
+        let bytedArray = new Uint8Array(file);
+        bytedArray.forEach((val, index) => this.writeByte(index, val));
+    }
 }
