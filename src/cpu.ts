@@ -1,21 +1,26 @@
 // GB's cpu is a modified Z80, so...
 class Z80 {
-    memory: MMU
+    #memory: MMU
 
     constructor(mmu: MMU) {
-        this.memory = mmu;
+        this.#memory = mmu;
     }
 
-    registers = {
+    #registers = {
         a: 0, b: 0, c: 0, d: 0, e: 0, h: 0, l: 0, // for computation
         f: 0, // flag,
         sp: 0, // stack pointer
+        pc: 0, // program counter
     }
 
-    clock = {
+    #clock = {
         last: 0, // time to run last instruction
         total: 0 // time total
     }
+
+    #opMap = [
+        this.NOP, this.LD_BC_d16
+    ]
 
     reset() {
         (["register", "clock"] as Array<keyof this>)
@@ -27,23 +32,42 @@ class Z80 {
     }
 
     clearFlag() {
-        this.registers.f = 0;
+        this.#registers.f = 0;
     }
 
-    setZeroFlag() {
-        this.registers.f |= 0x80;
+    private setZeroFlag() {
+        this.#registers.f |= 0x80;
     }
 
-    setSubstractionFlag() {
-        this.registers.f |= 0x40;
+    private setSubstractionFlag() {
+        this.#registers.f |= 0x40;
     }
 
-    setHalfCarryFlag() {
-        this.registers.f |= 0x20;
+    private setHalfCarryFlag() {
+        this.#registers.f |= 0x20;
     }
 
-    setCarryFlag() {
-        this.registers.f |= 0x10;
+    private setCarryFlag() {
+        this.#registers.f |= 0x10;
+    }
+
+    private pcInc() {
+        this.#registers.pc++;
+    }
+
+    private readFromPc() {
+        return this.#memory.readByte(this.#registers.pc);
+    }
+
+    private NOP() { }
+
+    private LD_BC_d16() {
+        let lowerByte = this.readFromPc();
+        this.pcInc();
+        let higherByte = this.readFromPc();
+        this.pcInc();
+        this.#registers.b = higherByte;
+        this.#registers.c = lowerByte;
     }
 }
 
