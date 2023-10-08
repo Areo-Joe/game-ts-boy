@@ -19,7 +19,7 @@ class Z80 {
     }
 
     #opMap = [
-        this.NOP, this.LD_BC_d16
+        this.NOP, this.LD_BC_d16, this.LD_BCa_A, this.INC_BC, this.INC_B
     ]
 
     reset() {
@@ -35,20 +35,45 @@ class Z80 {
         this.#registers.f = 0;
     }
 
-    private setZeroFlag() {
-        this.#registers.f |= 0x80;
+    private readRegisterPair(higherByte: Z80Registers, lowerByte: Z80Registers): number {
+        return this.#registers[higherByte] << 8 + this.#registers[lowerByte];
     }
 
-    private setSubstractionFlag() {
-        this.#registers.f |= 0x40;
+    private writeRegisterPair(higherByte: Z80Registers, lowerByte: Z80Registers, val: number) {
+        this.#registers[lowerByte] = val & 0xff;
+        this.#registers[higherByte] = (val >> 8) & 0xff;
     }
 
-    private setHalfCarryFlag() {
-        this.#registers.f |= 0x20;
+    private setZeroFlag(bool: boolean) {
+        if (bool) {
+            this.#registers.f |= 0x80;
+        } else {
+            this.#registers.f &= (0xff ^ 0x80);
+        }
     }
 
-    private setCarryFlag() {
-        this.#registers.f |= 0x10;
+    private setSubstractionFlag(bool: boolean) {
+        if (bool) {
+            this.#registers.f |= 0x40;
+        } else {
+            this.#registers.f &= (0xff ^ 0x40);
+        }
+    }
+
+    private setHalfCarryFlag(bool: boolean) {
+        if (bool) {
+            this.#registers.f |= 0x20;
+        } else {
+            this.#registers.f &= (0xff ^ 0x20);
+        }
+    }
+
+    private setCarryFlag(bool: boolean) {
+        if (bool) {
+            this.#registers.f |= 0x10;
+        } else {
+            this.#registers.f &= (0xff ^ 0x10);
+        }
     }
 
     private pcInc() {
@@ -69,6 +94,25 @@ class Z80 {
         this.#registers.b = higherByte;
         this.#registers.c = lowerByte;
     }
+
+    private LD_BCa_A() {
+        let addr = this.readRegisterPair("b", "c");
+        this.#memory.writeByte(addr, this.#registers.a);
+    }
+
+    private INC_BC() {
+        let val = this.readRegisterPair("b", "c");
+        this.writeRegisterPair("b", "c", (val + 1) & 0xffff);
+    }
+
+    private INC_B() {
+        let val = this.#registers.b;
+        let result = (val + 1) & 0xff;
+        this.#registers.b = result;
+        this.setZeroFlag(shouldSetZeroFlag(result));
+        this.setSubstractionFlag(false);
+        this.setHalfCarryFlag((shouldSetHalfCarryFlag(val, 1)));
+    }
 }
 
 export abstract class MMU {
@@ -77,4 +121,14 @@ export abstract class MMU {
 
     abstract readDoubleByte(addr: number): number;
     abstract writeDoubleByte(addr: number, val: number): void;
+}
+
+type Z80Registers = "a" | "b" | "c" | "d" | "e" | "h" | "l" | "f" | "sp" | "pc"
+
+function shouldSetZeroFlag(result: number) {
+    return result === 0;
+}
+
+function shouldSetHalfCarryFlag(augend: number, addend: number) {
+    return (((augend & 0xf) + (addend & 0xf)) & 0x10) !== 0;
 }
