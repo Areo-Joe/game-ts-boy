@@ -35,6 +35,8 @@ export class GameBoyMMU extends MMU {
         this.#zeroPage
     ];
 
+    #rom: ArrayBuffer | null = null
+
     private transformAddr(addr: number): [number, number] {
         if (addr < 0 || addr >= 0x10000) {
             throw new Error(`Invalid address: 0x${addr.toString(16)}`);
@@ -72,8 +74,7 @@ export class GameBoyMMU extends MMU {
         this.writeByte(addr + 1, val >> 8);
     }
 
-    load(file: ArrayBuffer) {
-        let bytedArray = new Uint8Array(file);
-        bytedArray.forEach((val, index) => this.writeByte(index, val));
+    loadRom(romFile: ArrayBuffer) {
+        this.#rom = romFile; 
     }
 }
