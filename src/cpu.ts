@@ -35,11 +35,11 @@ class Z80 {
         this.#registers.f = 0;
     }
 
-    private readRegisterPair(higherByte: Z80Registers, lowerByte: Z80Registers): number {
+    private joinRegisterPair(higherByte: Z80Registers, lowerByte: Z80Registers): number {
         return this.#registers[higherByte] << 8 + this.#registers[lowerByte];
     }
 
-    private writeRegisterPair(higherByte: Z80Registers, lowerByte: Z80Registers, val: number) {
+    private distributeToRegisterPair(higherByte: Z80Registers, lowerByte: Z80Registers, val: number) {
         this.#registers[lowerByte] = val & 0xff;
         this.#registers[higherByte] = (val >> 8) & 0xff;
     }
@@ -96,13 +96,13 @@ class Z80 {
     }
 
     private LD_BCa_A() {
-        let addr = this.readRegisterPair("b", "c");
+        let addr = this.joinRegisterPair("b", "c");
         this.#memory.writeByte(addr, this.#registers.a);
     }
 
     private INC_BC() {
-        let val = this.readRegisterPair("b", "c");
-        this.writeRegisterPair("b", "c", (val + 1) & 0xffff);
+        let val = this.joinRegisterPair("b", "c");
+        this.distributeToRegisterPair("b", "c", (val + 1) & 0xffff);
     }
 
     private INC_B() {
@@ -111,7 +111,15 @@ class Z80 {
         this.#registers.b = result;
         this.setZeroFlag(shouldSetZeroFlag(result));
         this.setSubstractionFlag(false);
-        this.setHalfCarryFlag((shouldSetHalfCarryFlag(val, 1)));
+        this.setHalfCarryFlag((shouldSetHalfCarryFlag(val, 1, Operation.Add)));
+    }
+
+    private DEC_B() {
+        let val = this.#registers.b;
+        let result = (val - 1) & 0xff;
+        this.setZeroFlag(shouldSetZeroFlag(result));
+        this.setSubstractionFlag(true);
+        this.setHalfCarryFlag(shouldSetHalfCarryFlag(val, 1, Operation.Minus));
     }
 }
 
@@ -125,10 +133,19 @@ export abstract class MMU {
 
 type Z80Registers = "a" | "b" | "c" | "d" | "e" | "h" | "l" | "f" | "sp" | "pc"
 
+enum Operation {
+    Add,
+    Minus
+}
+
 function shouldSetZeroFlag(result: number) {
     return result === 0;
 }
 
-function shouldSetHalfCarryFlag(augend: number, addend: number) {
-    return (((augend & 0xf) + (addend & 0xf)) & 0x10) !== 0;
+function shouldSetHalfCarryFlag(left: number, right: number, operation: Operation) {
+    if (operation === Operation.Add) {
+        return (((left & 0xf) + (right & 0xf)) & 0x10) !== 0;
+    } else {
+        return (left & 0xf) < (right & 0xf);
+    }
 }
