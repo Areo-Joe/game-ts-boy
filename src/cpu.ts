@@ -20,6 +20,13 @@ class Z80 {
 
   #opMap = [this.NOP, this.LD_BC_d16, this.LD_BCa_A, this.INC_BC, this.INC_B, this.DEC_B];
 
+  run() {
+    while (true) {
+      const opcode = this.readFromPcAndIncPc();
+      this.#opMap[opcode]();
+    }
+  }
+  
   reset() {
     (["register", "clock"] as Array<keyof this>).forEach((resetKey) => {
       Object.keys(this[resetKey] as Record<string, number>).forEach(
@@ -88,13 +95,20 @@ class Z80 {
     return this.#memory.readByte(this.#registers.pc);
   }
 
+  private readFromPcAndIncPc() {
+    const ret = this.readFromPc();
+    this.pcInc();
+    return ret;
+  }
+
+  // ***** THE FUNCTIONS BELOW ARE OPCODES!!! *****
+
+  // ***** [1st 8 ops] [0x00 - 0x07] starts *****
   private NOP() {}
 
   private LD_BC_d16() {
-    let lowerByte = this.readFromPc();
-    this.pcInc();
-    let higherByte = this.readFromPc();
-    this.pcInc();
+    const lowerByte = this.readFromPcAndIncPc();
+    const higherByte = this.readFromPcAndIncPc();
     this.#registers.b = higherByte;
     this.#registers.c = lowerByte;
   }
@@ -125,6 +139,20 @@ class Z80 {
     this.setSubstractionFlag(true);
     this.setHalfCarryFlag(shouldSetHalfCarryFlag(val, 1, Operation.Minus));
   }
+
+  private LD_B_d8() {
+    this.#registers.b = this.readFromPcAndIncPc();
+  }
+
+  private RLCA() {
+    const lastBit = (this.#registers.a & (0x1 << 7)) !== 0 ? 1 : 0;
+    const leftOne = ((this.#registers.a & 0xff) << 1) & 0xff;
+    const result = (leftOne & ~1) | lastBit;
+    this.#registers.a = result;
+    this.setCarryFlag(lastBit === 1);
+  }
+
+  // ***** [1st 8 ops] [0x00 - 0x07] ends *****
 }
 
 export abstract class MMU {
