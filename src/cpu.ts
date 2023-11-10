@@ -37,8 +37,15 @@ class Z80 {
     this.LD_B_d8,
     this.RLCA,
 
+    // 2nd
     this.LD_d16a_SP,
     this.ADD_HL_BC,
+    this.LD_A_BCa,
+    this.DEC_BC,
+    this.INC_C,
+    this.DEC_C,
+    this.LD_C_D8,
+    this.RRCA,
   ];
 
   run() {
@@ -61,15 +68,15 @@ class Z80 {
   }
 
   private joinRegisterPair(
-    higherByte: Z80Registers,
-    lowerByte: Z80Registers
+    higherByte: Z80SingleByteRegisters,
+    lowerByte: Z80SingleByteRegisters
   ): number {
     return (this.#registers[higherByte] << 8) + this.#registers[lowerByte];
   }
 
   private distributeToRegisterPair(
-    higherByte: Z80Registers,
-    lowerByte: Z80Registers,
+    higherByte: Z80SingleByteRegisters,
+    lowerByte: Z80SingleByteRegisters,
     val: number
   ) {
     this.#registers[lowerByte] = val & 0xff;
@@ -124,6 +131,35 @@ class Z80 {
 
   // ***** THE FUNCTIONS BELOW ARE OPCODES!!! *****
 
+  // ***** General Ops starts *****
+  // Try to impl ops with general inner impls.
+
+  private INC_R(register: Z80SingleByteRegisters) {
+    const val = this.#registers[register];
+    const result = (val + 1) & 0xff;
+    this.#registers[register] = result;
+    this.setZeroFlag(shouldSetZeroFlag(result));
+    this.setSubstractionFlag(false);
+    this.setHalfCarryFlag(
+      shouldSetHalfCarryFlag(val, 1, Operation.Add, BitLength.OneByte)
+    );
+  }
+
+  private DEC_R(register: Z80SingleByteRegisters) {
+    const val = this.#registers[register];
+    const result = (val - 1) & 0xff;
+    this.#registers[register] = result;
+    this.setZeroFlag(shouldSetZeroFlag(result));
+    this.setSubstractionFlag(true);
+    this.setHalfCarryFlag(
+      shouldSetHalfCarryFlag(val, 1, Operation.Minus, BitLength.OneByte)
+    );
+  }
+
+  private LD_R_D8(register: Z80SingleByteRegisters) {
+    this.#registers[register] = this.readFromPcAndIncPc();
+  }
+
   // ***** [1st 8 ops] [0x00 - 0x07] starts *****
 
   private NOP() {}
@@ -146,28 +182,15 @@ class Z80 {
   }
 
   private INC_B() {
-    let val = this.#registers.b;
-    let result = (val + 1) & 0xff;
-    this.#registers.b = result;
-    this.setZeroFlag(shouldSetZeroFlag(result));
-    this.setSubstractionFlag(false);
-    this.setHalfCarryFlag(
-      shouldSetHalfCarryFlag(val, 1, Operation.Add, BitLength.OneByte)
-    );
+    this.INC_R('b');
   }
 
   private DEC_B() {
-    let val = this.#registers.b;
-    let result = (val - 1) & 0xff;
-    this.setZeroFlag(shouldSetZeroFlag(result));
-    this.setSubstractionFlag(true);
-    this.setHalfCarryFlag(
-      shouldSetHalfCarryFlag(val, 1, Operation.Minus, BitLength.OneByte)
-    );
+    this.DEC_R('b');
   }
 
   private LD_B_d8() {
-    this.#registers.b = this.readFromPcAndIncPc();
+    this.LD_R_D8('b');
   }
 
   private RLCA() {
@@ -202,6 +225,37 @@ class Z80 {
       shouldSetCarryFlag(hl, bc, Operation.Add, BitLength.DoubleByte)
     );
   }
+
+  private LD_A_BCa() {
+    const addr = this.joinRegisterPair('b', 'c');
+    this.#registers.a = this.#memory.readByte(addr);
+  }
+
+  private DEC_BC() {
+    const val = this.joinRegisterPair('b', 'c');
+    this.distributeToRegisterPair('b', 'c', (val - 1) & 0xff);
+  }
+
+  private INC_C() {
+    this.INC_R('c');
+  }
+
+  private DEC_C() {
+    this.DEC_R('c');
+  }
+
+  private LD_C_D8() {
+    this.LD_R_D8('c');
+  }
+
+  private RRCA() {
+    const a = this.#registers.a & 0xff;
+    const firstBit = 1 & a;
+    this.#registers.a = (0xff & (a >> 1) & ((1 << 7) - 1)) | (firstBit << 7);
+    this.setCarryFlag(firstBit === 1);
+  }
+
+  // ***** [2nd 8 ops] [0x00 - 0x07] ends  *****
 }
 
 export abstract class MMU {
@@ -212,6 +266,7 @@ export abstract class MMU {
   abstract writeDoubleByte(addr: number, val: number): void;
 }
 
+type Z80SingleByteRegisters = 'a' | 'b' | 'c' | 'd' | 'e' | 'h' | 'l' | 'f';
 type Z80Registers = 'a' | 'b' | 'c' | 'd' | 'e' | 'h' | 'l' | 'f' | 'sp' | 'pc';
 
 enum Operation {
