@@ -44,8 +44,18 @@ class Z80 {
     this.DEC_BC,
     this.INC_C,
     this.DEC_C,
-    this.LD_C_D8,
+    this.LD_C_d8,
     this.RRCA,
+
+    // 3rd
+    this.Stop,
+    this.LD_DE_d16,
+    this.LD_DEa_A,
+    this.INC_DE,
+    this.INC_D,
+    this.DEC_D,
+    this.LD_D_d8,
+    this.RLA,
   ];
 
   run() {
@@ -83,7 +93,11 @@ class Z80 {
     this.#registers[higherByte] = (val >> 8) & 0xff;
   }
 
-  private setZeroFlag(bool: boolean) {
+  private get zeroFlag() {
+    return (this.#registers.f & 0x80) !== 0;
+  }
+
+  private set zeroFlag(bool: boolean) {
     if (bool) {
       this.#registers.f |= 0x80;
     } else {
@@ -91,7 +105,11 @@ class Z80 {
     }
   }
 
-  private setSubstractionFlag(bool: boolean) {
+  private get substractionFlag() {
+    return (this.#registers.f & 0x40) !== 0;
+  }
+
+  private set substractionFlag(bool: boolean) {
     if (bool) {
       this.#registers.f |= 0x40;
     } else {
@@ -99,7 +117,11 @@ class Z80 {
     }
   }
 
-  private setHalfCarryFlag(bool: boolean) {
+  private get halfCarryFlag() {
+    return (this.#registers.f & 0x20) !== 0;
+  }
+
+  private set halfCarryFlag(bool: boolean) {
     if (bool) {
       this.#registers.f |= 0x20;
     } else {
@@ -107,7 +129,11 @@ class Z80 {
     }
   }
 
-  private setCarryFlag(bool: boolean) {
+  private get carryFlag() {
+    return (this.#registers.f & 0x10) !== 0;
+  }
+
+  private set carryFlag(bool: boolean) {
     if (bool) {
       this.#registers.f |= 0x10;
     } else {
@@ -134,14 +160,54 @@ class Z80 {
   // ***** General Ops starts *****
   // Try to impl ops with general inner impls.
 
+  private LD_RR_d16(
+    higherByteRegister: Z80SingleByteRegisters,
+    lowerByteRegister: Z80SingleByteRegisters
+  ) {
+    const lowerByte = this.readFromPcAndIncPc();
+    const higherByte = this.readFromPcAndIncPc();
+    this.distributeToRegisterPair(
+      higherByteRegister,
+      lowerByteRegister,
+      (higherByte << 8) + lowerByte
+    );
+  }
+
+  private LD_RRa_R(
+    addrHigherByteRegister: Z80SingleByteRegisters,
+    addrLowerByteRegister: Z80SingleByteRegisters,
+    valueRegister: Z80SingleByteRegisters
+  ) {
+    const addr = this.joinRegisterPair(
+      addrHigherByteRegister,
+      addrLowerByteRegister
+    );
+    this.#memory.writeByte(addr, this.#registers[valueRegister]);
+  }
+
+  private INC_RR(
+    higherByteRegister: Z80SingleByteRegisters,
+    lowerByteRegister: Z80SingleByteRegisters
+  ) {
+    const val = this.joinRegisterPair(higherByteRegister, lowerByteRegister);
+    this.distributeToRegisterPair(
+      higherByteRegister,
+      lowerByteRegister,
+      (val + 1) & 0xffff
+    );
+  }
+
   private INC_R(register: Z80SingleByteRegisters) {
     const val = this.#registers[register];
     const result = (val + 1) & 0xff;
     this.#registers[register] = result;
-    this.setZeroFlag(shouldSetZeroFlag(result));
-    this.setSubstractionFlag(false);
-    this.setHalfCarryFlag(
-      shouldSetHalfCarryFlag(val, 1, Operation.Add, BitLength.OneByte)
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = shouldSetHalfCarryFlag(
+      val,
+      1,
+      Operation.Add,
+      BitLength.OneByte
     );
   }
 
@@ -149,14 +215,17 @@ class Z80 {
     const val = this.#registers[register];
     const result = (val - 1) & 0xff;
     this.#registers[register] = result;
-    this.setZeroFlag(shouldSetZeroFlag(result));
-    this.setSubstractionFlag(true);
-    this.setHalfCarryFlag(
-      shouldSetHalfCarryFlag(val, 1, Operation.Minus, BitLength.OneByte)
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = true;
+    this.halfCarryFlag = shouldSetHalfCarryFlag(
+      val,
+      1,
+      Operation.Minus,
+      BitLength.OneByte
     );
   }
 
-  private LD_R_D8(register: Z80SingleByteRegisters) {
+  private LD_R_d8(register: Z80SingleByteRegisters) {
     this.#registers[register] = this.readFromPcAndIncPc();
   }
 
@@ -165,20 +234,15 @@ class Z80 {
   private NOP() {}
 
   private LD_BC_d16() {
-    const lowerByte = this.readFromPcAndIncPc();
-    const higherByte = this.readFromPcAndIncPc();
-    this.#registers.b = higherByte;
-    this.#registers.c = lowerByte;
+    this.LD_RR_d16('b', 'c');
   }
 
   private LD_BCa_A() {
-    let addr = this.joinRegisterPair('b', 'c');
-    this.#memory.writeByte(addr, this.#registers.a);
+    this.LD_RRa_R('b', 'c', 'a');
   }
 
   private INC_BC() {
-    let val = this.joinRegisterPair('b', 'c');
-    this.distributeToRegisterPair('b', 'c', (val + 1) & 0xffff);
+    this.INC_RR('b', 'c');
   }
 
   private INC_B() {
@@ -190,7 +254,7 @@ class Z80 {
   }
 
   private LD_B_d8() {
-    this.LD_R_D8('b');
+    this.LD_R_d8('b');
   }
 
   private RLCA() {
@@ -198,7 +262,7 @@ class Z80 {
     const leftOne = ((this.#registers.a & 0xff) << 1) & 0xff;
     const result = (leftOne & ~1) | lastBit;
     this.#registers.a = result;
-    this.setCarryFlag(lastBit === 1);
+    this.carryFlag = lastBit === 1;
   }
 
   // ***** [1st 8 ops] [0x00 - 0x07] ends *****
@@ -217,12 +281,18 @@ class Z80 {
     const hl = this.joinRegisterPair('h', 'l');
     const result = (hl + bc) & 0xff;
     this.distributeToRegisterPair('h', 'l', result);
-    this.setSubstractionFlag(false);
-    this.setHalfCarryFlag(
-      shouldSetHalfCarryFlag(hl, bc, Operation.Add, BitLength.DoubleByte)
+    this.substractionFlag = false;
+    this.halfCarryFlag = shouldSetHalfCarryFlag(
+      hl,
+      bc,
+      Operation.Add,
+      BitLength.DoubleByte
     );
-    this.setCarryFlag(
-      shouldSetCarryFlag(hl, bc, Operation.Add, BitLength.DoubleByte)
+    this.carryFlag = shouldSetCarryFlag(
+      hl,
+      bc,
+      Operation.Add,
+      BitLength.DoubleByte
     );
   }
 
@@ -244,22 +314,58 @@ class Z80 {
     this.DEC_R('c');
   }
 
-  private LD_C_D8() {
-    this.LD_R_D8('c');
+  private LD_C_d8() {
+    this.LD_R_d8('c');
   }
 
   private RRCA() {
     const a = this.#registers.a & 0xff;
     const firstBit = 1 & a;
     this.#registers.a = (0xff & (a >> 1) & ((1 << 7) - 1)) | (firstBit << 7);
-    this.setCarryFlag(firstBit === 1);
+    this.carryFlag = firstBit === 1;
   }
 
   // ***** [2nd 8 ops] [0x08 - 0x0f] ends  *****
 
   // ***** [3rd 8 ops] [0x10 - 0x17] ends  *****
 
-  
+  private Stop() {
+    // todo: check usage
+    this.pcInc();
+  }
+
+  private LD_DE_d16() {
+    this.LD_RR_d16('d', 'e');
+  }
+
+  private LD_DEa_A() {
+    this.LD_RRa_R('d', 'e', 'a');
+  }
+
+  private INC_DE() {
+    this.INC_RR('d', 'e');
+  }
+
+  private INC_D() {
+    this.INC_R('d');
+  }
+
+  private DEC_D() {
+    this.DEC_R('d');
+  }
+
+  private LD_D_d8() {
+    this.LD_R_d8('d');
+  }
+
+  private RLA() {
+    const a = this.#registers.a;
+    const lastBit = (a & (1 << 7)) >> 7;
+    const movedLeft = (a << 1) & 0xff;
+    const result = (movedLeft & ~1) | (this.carryFlag ? 1 : 0);
+    this.carryFlag = lastBit === 0 ? false : true;
+  }
+
   // ***** [3rd 8 ops] [0x10 - 0x17] ends  *****
 }
 
