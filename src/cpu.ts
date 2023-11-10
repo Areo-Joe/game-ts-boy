@@ -203,7 +203,7 @@ class Z80 {
 
   // ***** [1st 8 ops] [0x00 - 0x07] ends *****
 
-  // ***** [2nd 8 ops] [0x00 - 0x07] starts  *****
+  // ***** [2nd 8 ops] [0x08 - 0x0f] starts  *****
 
   private LD_d16a_SP() {
     const addrLB = this.readFromPcAndIncPc();
@@ -255,7 +255,12 @@ class Z80 {
     this.setCarryFlag(firstBit === 1);
   }
 
-  // ***** [2nd 8 ops] [0x00 - 0x07] ends  *****
+  // ***** [2nd 8 ops] [0x08 - 0x0f] ends  *****
+
+  // ***** [3rd 8 ops] [0x10 - 0x17] ends  *****
+
+  
+  // ***** [3rd 8 ops] [0x10 - 0x17] ends  *****
 }
 
 export abstract class MMU {
