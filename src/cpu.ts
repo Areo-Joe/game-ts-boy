@@ -56,6 +56,16 @@ class Z80 {
     this.DEC_D,
     this.LD_D_d8,
     this.RLA,
+
+    // 4th
+    this.JR_s8,
+    this.ADD_HL_DE,
+    this.LD_A_DEa,
+    this.DEC_DE,
+    this.INC_E,
+    this.DEC_E,
+    this.LD_E_d8,
+    this.RRA,
   ];
 
   run() {
@@ -229,6 +239,61 @@ class Z80 {
     this.#registers[register] = this.readFromPcAndIncPc();
   }
 
+  private ADD_RR_RR(
+    targetHigherByteRegister: Z80SingleByteRegisters,
+    targetLowerByteRegister: Z80SingleByteRegisters,
+    sourceHigherByteRegister: Z80SingleByteRegisters,
+    sourceLowerByteRegister: Z80SingleByteRegisters
+  ) {
+    const source = this.joinRegisterPair(
+      sourceHigherByteRegister,
+      sourceLowerByteRegister
+    );
+    const target = this.joinRegisterPair(
+      targetHigherByteRegister,
+      targetLowerByteRegister
+    );
+    const result = (target + source) & 0xff;
+    this.distributeToRegisterPair('h', 'l', result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = shouldSetHalfCarryFlag(
+      target,
+      source,
+      Operation.Add,
+      BitLength.DoubleByte
+    );
+    this.carryFlag = shouldSetCarryFlag(
+      target,
+      source,
+      Operation.Add,
+      BitLength.DoubleByte
+    );
+  }
+
+  private LD_R_RRa(
+    targetRegister: Z80SingleByteRegisters,
+    addrHigherByteRegister: Z80SingleByteRegisters,
+    addrLowerByteRegister: Z80SingleByteRegisters
+  ) {
+    const addr = this.joinRegisterPair(
+      addrHigherByteRegister,
+      addrLowerByteRegister
+    );
+    this.#registers[targetRegister] = this.#memory.readByte(addr);
+  }
+
+  private DEC_RR(
+    higherByteRegister: Z80SingleByteRegisters,
+    lowerByteRegister: Z80SingleByteRegisters
+  ) {
+    const val = this.joinRegisterPair(higherByteRegister, lowerByteRegister);
+    this.distributeToRegisterPair(
+      higherByteRegister,
+      lowerByteRegister,
+      (val - 1) & 0xff
+    );
+  }
+
   // ***** [1st 8 ops] [0x00 - 0x07] starts *****
 
   private NOP() {}
@@ -277,33 +342,15 @@ class Z80 {
   }
 
   private ADD_HL_BC() {
-    const bc = this.joinRegisterPair('b', 'c');
-    const hl = this.joinRegisterPair('h', 'l');
-    const result = (hl + bc) & 0xff;
-    this.distributeToRegisterPair('h', 'l', result);
-    this.substractionFlag = false;
-    this.halfCarryFlag = shouldSetHalfCarryFlag(
-      hl,
-      bc,
-      Operation.Add,
-      BitLength.DoubleByte
-    );
-    this.carryFlag = shouldSetCarryFlag(
-      hl,
-      bc,
-      Operation.Add,
-      BitLength.DoubleByte
-    );
+    this.ADD_RR_RR('h', 'l', 'b', 'c');
   }
 
   private LD_A_BCa() {
-    const addr = this.joinRegisterPair('b', 'c');
-    this.#registers.a = this.#memory.readByte(addr);
+    this.LD_R_RRa('a', 'b', 'c');
   }
 
   private DEC_BC() {
-    const val = this.joinRegisterPair('b', 'c');
-    this.distributeToRegisterPair('b', 'c', (val - 1) & 0xff);
+    this.DEC_RR('b', 'c');
   }
 
   private INC_C() {
@@ -368,9 +415,49 @@ class Z80 {
 
   // ***** [3rd 8 ops] [0x10 - 0x17] ends  *****
 
+  // ***** [4th 8 ops] [0x18 - 0x1f] starts  *****
+
   private JR_s8() {
     const notParsed8Bit = this.readFromPcAndIncPc();
+    const parsed = parseAsSigned(notParsed8Bit, BitLength.OneByte);
+    this.#registers.pc += parsed;
   }
+
+  private ADD_HL_DE() {
+    this.ADD_RR_RR('h', 'l', 'd', 'e');
+  }
+
+  private LD_A_DEa() {
+    this.LD_R_RRa('a', 'd', 'e');
+  }
+
+  private DEC_DE() {
+    this.DEC_RR('d', 'e');
+  }
+
+  private INC_E() {
+    this.INC_R('e');
+  }
+
+  private DEC_E() {
+    this.DEC_R('e');
+  }
+
+  private LD_E_d8() {
+    this.LD_R_d8('e');
+  }
+
+  private RRA() {
+    const carryFlag = this.carryFlag;
+    const firstByte = this.#registers.a & 1;
+    const movedRight = (this.#registers.a >> 1) & 0xff;
+    const registerResult =
+      (movedRight & ((1 << 7) - 1)) | ((carryFlag ? 1 : 0) << 7);
+    this.carryFlag = firstByte === 1 ? true : false;
+    this.#registers.a = registerResult;
+  }
+
+  // ***** [4th 8 ops] [0x18 - 0x1f] ends  *****
 }
 
 export abstract class MMU {
@@ -438,6 +525,7 @@ function assertEven(x: number) {
 
 function parseAsSigned(val: number, bitLength: number) {
   const allOnes = (1 << bitLength) - 1;
+
   const lastBit = ((1 << (bitLength - 1)) & val) >> (bitLength - 1);
   if (lastBit === 1) {
     return -((~val + 1) & allOnes);
