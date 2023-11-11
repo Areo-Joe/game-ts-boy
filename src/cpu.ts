@@ -367,6 +367,10 @@ class Z80 {
   }
 
   // ***** [3rd 8 ops] [0x10 - 0x17] ends  *****
+
+  private JR_s8() {
+    const notParsed8Bit = this.readFromPcAndIncPc();
+  }
 }
 
 export abstract class MMU {
@@ -429,5 +433,17 @@ function shouldSetCarryFlag(
 function assertEven(x: number) {
   if (x % 2 !== 0) {
     throw new Error(`${x} is not even!`);
+  }
+}
+
+function parseAsSigned(val: number, bitLength: number) {
+  const allOnes = (1 << bitLength) - 1;
+  const lastBit = ((1 << (bitLength - 1)) & val) >> (bitLength - 1);
+  if (lastBit === 1) {
+    return -((~val + 1) & allOnes);
+  } else if (lastBit === 0) {
+    return val & ((1 << bitLength) - 1);
+  } else {
+    throw new Error('Bug when parsing!');
   }
 }
