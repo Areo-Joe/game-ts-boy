@@ -420,7 +420,7 @@ class Z80 {
   private JR_s8() {
     const notParsed8Bit = this.readFromPcAndIncPc();
     const parsed = parseAsSigned(notParsed8Bit, BitLength.OneByte);
-    this.#registers.pc += parsed;
+    this.#registers.pc = (this.#registers.pc + parsed) & 0xff;
   }
 
   private ADD_HL_DE() {
@@ -458,6 +458,53 @@ class Z80 {
   }
 
   // ***** [4th 8 ops] [0x18 - 0x1f] ends  *****
+
+  // ***** [5th 8 ops] [0x20 - 0x27] starts  *****
+
+  private JR_NZ_s8() {
+    if (this.zeroFlag) {
+      // no jump
+      this.pcInc();
+    } else {
+      // jump
+      const notParsed8Bit = this.readFromPcAndIncPc();
+      const parsed = parseAsSigned(notParsed8Bit, BitLength.OneByte);
+      this.#registers.pc = (this.#registers.pc + parsed) & 0xff;
+    }
+  }
+
+  private LD_HL_d16() {
+    this.LD_RR_d16('h', 'l');
+  }
+
+  private LD_HLa_A_and_INC_HL() {
+    this.LD_RRa_R('h', 'l', 'a');
+    this.INC_RR('h', 'l');
+  }
+
+  private INC_HL() {
+    this.INC_RR('h', 'l');
+  }
+
+  private INC_H() {
+    this.INC_R('h');
+  }
+
+  private LD_H_d8() {
+    this.LD_R_d8('h');
+  }
+
+  private DAA() {
+    let a = this.#registers.a;
+    if (this.halfCarryFlag || ((a & 0xf) > 0x9)) a += 6;
+    this.zeroFlag = false;
+    if (this.halfCarryFlag || (a > 0x99)) {
+      a += 0x60;
+      this.carryFlag = true;
+    }
+  }
+
+  // ***** [5th 8 ops] [0x20 - 0x27] ends  *****
 }
 
 export abstract class MMU {
