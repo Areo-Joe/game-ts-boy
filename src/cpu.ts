@@ -294,7 +294,34 @@ class Z80 {
       targetHigherByteRegister,
       targetLowerByteRegister
     );
-    const result = (target + source) & 0xff;
+    const result = (target + source) & 0xffff;
+    this.distributeToRegisterPair('h', 'l', result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = shouldSetHalfCarryFlag(
+      target,
+      source,
+      Operation.Add,
+      BitLength.DoubleByte
+    );
+    this.carryFlag = shouldSetCarryFlag(
+      target,
+      source,
+      Operation.Add,
+      BitLength.DoubleByte
+    );
+  }
+
+  private ADD_RR_doubleByteR(
+    targetHigherByteRegister: Z80SingleByteRegisters,
+    targetLowerByteRegister: Z80SingleByteRegisters,
+    sourceDoubleByteRegister: Z80DoubleByteRegisters
+  ) {
+    const source = this.#registers[sourceDoubleByteRegister];
+    const target = this.joinRegisterPair(
+      targetHigherByteRegister,
+      targetLowerByteRegister
+    );
+    const result = (target + source) & 0xffff;
     this.distributeToRegisterPair('h', 'l', result);
     this.substractionFlag = false;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
@@ -331,7 +358,7 @@ class Z80 {
     this.distributeToRegisterPair(
       higherByteRegister,
       lowerByteRegister,
-      (val - 1) & 0xff
+      (val - 1) & 0xffff
     );
   }
 
@@ -686,8 +713,26 @@ class Z80 {
   }
 
   private SCF() {
+    this.substractionFlag = false;
+    this.halfCarryFlag = false;
     this.carryFlag = true;
   }
+
+  // ***** [7th 8 ops] [0x30 - 0x37] ends  *****
+
+  // ***** [7th 8 ops] [0x30 - 0x37] starts  *****
+
+  private JR_C_s8() {
+    if (this.carryFlag) {
+      // jump
+      this.JR_s8();
+    } else {
+      // no jump
+      this.pcInc();
+    }
+  }
+
+  private ADD_HL_SP() {}
 
   // ***** [7th 8 ops] [0x30 - 0x37] ends  *****
 }
@@ -767,4 +812,62 @@ function parseAsSigned(val: number, bitLength: number) {
   } else {
     throw new Error('Bug when parsing!');
   }
+}
+
+function addWithOneByte(left: number, right: number) {
+  return performOperationOnOperandsWithBitLength(
+    left,
+    right,
+    Operation.Add,
+    BitLength.OneByte
+  );
+}
+
+function minusWithOneByte(left: number, right: number) {
+  return performOperationOnOperandsWithBitLength(
+    left,
+    right,
+    Operation.Minus,
+    BitLength.OneByte
+  );
+}
+
+function addWithDoubleByte(left: number, right: number) {
+  return performOperationOnOperandsWithBitLength(
+    left,
+    right,
+    Operation.Add,
+    BitLength.DoubleByte
+  );
+}
+
+function minusWithDoubleByte(left: number, right: number) {
+  return performOperationOnOperandsWithBitLength(
+    left,
+    right,
+    Operation.Minus,
+    BitLength.DoubleByte
+  );
+}
+
+function performOperationOnOperandsWithBitLength(
+  left: number,
+  right: number,
+  operation: Operation,
+  bitLength: number
+) {
+  let unfixedResult: number;
+  switch (operation) {
+    case Operation.Add:
+      unfixedResult = left + right;
+      break;
+    case Operation.Minus:
+      unfixedResult = left - right;
+      break;
+    default:
+      throw new Error('perform operation: not implemented!');
+  }
+
+  const allOnes = (1 << bitLength) - 1;
+  return unfixedResult & allOnes;
 }
