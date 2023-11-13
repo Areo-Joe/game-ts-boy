@@ -117,11 +117,18 @@ class Z80 {
     this.#registers.f = 0;
   }
 
+  private joinTwoByte(higherByte: number, lowerByte: number) {
+    return ((higherByte & 0xff) << 8) + (lowerByte & 0xff);
+  }
+
   private joinRegisterPair(
     higherByte: Z80SingleByteRegisters,
     lowerByte: Z80SingleByteRegisters
   ): number {
-    return (this.#registers[higherByte] << 8) + this.#registers[lowerByte];
+    return this.joinTwoByte(
+      this.#registers[higherByte],
+      this.#registers[lowerByte]
+    );
   }
 
   private distributeToRegisterPair(
@@ -206,17 +213,17 @@ class Z80 {
   ) {
     const lowerByte = this.readFromPcAndIncPc();
     const higherByte = this.readFromPcAndIncPc();
-    this.distributeToRegisterPair(
-      higherByteRegister,
-      lowerByteRegister,
-      (higherByte << 8) + lowerByte
-    );
+    this.#registers[higherByteRegister] = higherByte;
+    this.#registers[lowerByteRegister] = lowerByte;
   }
 
   private LD_doubleByteR_d16(doubleBytreRegister: Z80DoubleByteRegisters) {
     const lowerByte = this.readFromPcAndIncPc();
     const higherByte = this.readFromPcAndIncPc();
-    this.#registers[doubleBytreRegister] = (higherByte << 8) + lowerByte;
+    this.#registers[doubleBytreRegister] = this.joinTwoByte(
+      higherByte,
+      lowerByte
+    );
   }
 
   private LD_RRa_R(
@@ -239,18 +246,20 @@ class Z80 {
     this.distributeToRegisterPair(
       higherByteRegister,
       lowerByteRegister,
-      (val + 1) & 0xffff
+      addWithDoubleByte(val, 1)
     );
   }
 
   private INC_doubleByteR(doubleByteRegister: Z80DoubleByteRegisters) {
-    this.#registers[doubleByteRegister] =
-      (this.#registers[doubleByteRegister] + 1) & 0xffff;
+    this.#registers[doubleByteRegister] = addWithDoubleByte(
+      this.#registers[doubleByteRegister],
+      1
+    );
   }
 
   private INC_R(register: Z80SingleByteRegisters) {
     const val = this.#registers[register];
-    const result = (val + 1) & 0xff;
+    const result = addWithOneByte(val, 1);
     this.#registers[register] = result;
     this.zeroFlag = shouldSetZeroFlag(result);
     this.substractionFlag = false;
@@ -264,7 +273,7 @@ class Z80 {
 
   private DEC_R(register: Z80SingleByteRegisters) {
     const val = this.#registers[register];
-    const result = (val - 1) & 0xff;
+    const result = minusWithOneByte(val, 1);
     this.#registers[register] = result;
     this.zeroFlag = shouldSetZeroFlag(result);
     this.substractionFlag = true;
@@ -294,8 +303,12 @@ class Z80 {
       targetHigherByteRegister,
       targetLowerByteRegister
     );
-    const result = (target + source) & 0xffff;
-    this.distributeToRegisterPair('h', 'l', result);
+    const result = addWithDoubleByte(target, source);
+    this.distributeToRegisterPair(
+      targetHigherByteRegister,
+      targetLowerByteRegister,
+      result
+    );
     this.substractionFlag = false;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
       target,
@@ -321,8 +334,12 @@ class Z80 {
       targetHigherByteRegister,
       targetLowerByteRegister
     );
-    const result = (target + source) & 0xffff;
-    this.distributeToRegisterPair('h', 'l', result);
+    const result = addWithDoubleByte(target, source);
+    this.distributeToRegisterPair(
+      targetHigherByteRegister,
+      targetLowerByteRegister,
+      result
+    );
     this.substractionFlag = false;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
       target,
@@ -358,7 +375,7 @@ class Z80 {
     this.distributeToRegisterPair(
       higherByteRegister,
       lowerByteRegister,
-      (val - 1) & 0xffff
+      minusWithDoubleByte(val, 1)
     );
   }
 
@@ -371,7 +388,7 @@ class Z80 {
       addrLowerByteRegister
     );
     const val = this.#memory.readByte(addr);
-    const result = val + 1;
+    const result = addWithOneByte(val, 1);
     this.#memory.writeByte(addr, result);
     this.zeroFlag = shouldSetZeroFlag(result);
     this.substractionFlag = false;
@@ -392,7 +409,7 @@ class Z80 {
       addrLowerByteRegister
     );
     const val = this.#memory.readByte(addr);
-    const result = val - 1;
+    const result = minusWithOneByte(val, 1);
     this.#memory.writeByte(addr, result);
     this.zeroFlag = shouldSetZeroFlag(result);
     this.substractionFlag = true;
@@ -459,7 +476,7 @@ class Z80 {
   private LD_d16a_SP() {
     const addrLB = this.readFromPcAndIncPc();
     const addrHB = this.readFromPcAndIncPc();
-    const addr = ((addrHB << 8) & 0xff) + (0xff & addrLB);
+    const addr = this.joinTwoByte(addrHB, addrLB);
     this.#memory.writeDoubleByte(addr, this.#registers.sp);
   }
 
@@ -532,6 +549,7 @@ class Z80 {
     const lastBit = (a & (1 << 7)) >> 7;
     const movedLeft = (a << 1) & 0xff;
     const result = (movedLeft & ~1) | (this.carryFlag ? 1 : 0);
+    this.#registers.a = result;
     this.carryFlag = lastBit === 0 ? false : true;
   }
 
@@ -542,7 +560,7 @@ class Z80 {
   private JR_s8() {
     const notParsed8Bit = this.readFromPcAndIncPc();
     const parsed = parseAsSigned(notParsed8Bit, BitLength.OneByte);
-    this.#registers.pc = (this.#registers.pc + parsed) & 0xff;
+    this.#registers.pc = addWithDoubleByte(this.#registers.pc, parsed);
   }
 
   private ADD_HL_DE() {
