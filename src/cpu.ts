@@ -86,6 +86,16 @@ class Z80 {
     this.DEC_L,
     this.LD_L_d8,
     this.CPL,
+
+    // 7th
+    this.JR_NC_s8,
+    this.LD_SP_d16,
+    this.LD_HLa_A_and_DEC_HL,
+    this.INC_SP,
+    this.INC_HLa,
+    this.DEC_HLa,
+    this.LD_HLa_d8,
+    this.SCF,
   ];
 
   run() {
@@ -172,7 +182,7 @@ class Z80 {
   }
 
   private pcInc() {
-    this.#registers.pc++;
+    this.INC_doubleByteR('pc');
   }
 
   private readFromPc() {
@@ -203,6 +213,12 @@ class Z80 {
     );
   }
 
+  private LD_doubleByteR_d16(doubleBytreRegister: Z80DoubleByteRegisters) {
+    const lowerByte = this.readFromPcAndIncPc();
+    const higherByte = this.readFromPcAndIncPc();
+    this.#registers[doubleBytreRegister] = (higherByte << 8) + lowerByte;
+  }
+
   private LD_RRa_R(
     addrHigherByteRegister: Z80SingleByteRegisters,
     addrLowerByteRegister: Z80SingleByteRegisters,
@@ -225,6 +241,11 @@ class Z80 {
       lowerByteRegister,
       (val + 1) & 0xffff
     );
+  }
+
+  private INC_doubleByteR(doubleByteRegister: Z80DoubleByteRegisters) {
+    this.#registers[doubleByteRegister] =
+      (this.#registers[doubleByteRegister] + 1) & 0xffff;
   }
 
   private INC_R(register: Z80SingleByteRegisters) {
@@ -312,6 +333,60 @@ class Z80 {
       lowerByteRegister,
       (val - 1) & 0xff
     );
+  }
+
+  private INC_RRa(
+    addrHigherByteRegister: Z80SingleByteRegisters,
+    addrLowerByteRegister: Z80SingleByteRegisters
+  ) {
+    const addr = this.joinRegisterPair(
+      addrHigherByteRegister,
+      addrLowerByteRegister
+    );
+    const val = this.#memory.readByte(addr);
+    const result = val + 1;
+    this.#memory.writeByte(addr, result);
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = shouldSetHalfCarryFlag(
+      val,
+      1,
+      Operation.Add,
+      BitLength.OneByte
+    );
+  }
+
+  private DEC_RRa(
+    addrHigherByteRegister: Z80SingleByteRegisters,
+    addrLowerByteRegister: Z80SingleByteRegisters
+  ) {
+    const addr = this.joinRegisterPair(
+      addrHigherByteRegister,
+      addrLowerByteRegister
+    );
+    const val = this.#memory.readByte(addr);
+    const result = val - 1;
+    this.#memory.writeByte(addr, result);
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = true;
+    this.halfCarryFlag = shouldSetHalfCarryFlag(
+      val,
+      1,
+      Operation.Minus,
+      BitLength.OneByte
+    );
+  }
+
+  private LD_RRa_d8(
+    addrHigherByteRegister: Z80SingleByteRegisters,
+    addrLowerByteRegister: Z80SingleByteRegisters
+  ) {
+    const addr = this.joinRegisterPair(
+      addrHigherByteRegister,
+      addrLowerByteRegister
+    );
+    const val = this.readFromPcAndIncPc();
+    this.#memory.writeByte(addr, val);
   }
 
   // ***** [1st 8 ops] [0x00 - 0x07] starts *****
@@ -487,9 +562,7 @@ class Z80 {
       this.pcInc();
     } else {
       // jump
-      const notParsed8Bit = this.readFromPcAndIncPc();
-      const parsed = parseAsSigned(notParsed8Bit, BitLength.OneByte);
-      this.#registers.pc = (this.#registers.pc + parsed) & 0xff;
+      this.JR_s8();
     }
   }
 
@@ -536,9 +609,7 @@ class Z80 {
   private JR_Z_s8() {
     if (this.zeroFlag) {
       // jump
-      const notParsed8Bit = this.readFromPcAndIncPc();
-      const parsed = parseAsSigned(notParsed8Bit, BitLength.OneByte);
-      this.#registers.pc = (this.#registers.pc + parsed) & 0xff;
+      this.JR_s8();
     } else {
       // no jump
       this.pcInc();
@@ -577,6 +648,48 @@ class Z80 {
   }
 
   // ***** [6th 8 ops] [0x28 - 0x2f] ends  *****
+
+  // ***** [7th 8 ops] [0x30 - 0x37] starts  *****
+
+  private JR_NC_s8() {
+    if (this.carryFlag) {
+      // no jump
+      this.pcInc();
+    } else {
+      this.JR_s8();
+    }
+  }
+
+  private LD_SP_d16() {
+    this.LD_doubleByteR_d16('sp');
+  }
+
+  private LD_HLa_A_and_DEC_HL() {
+    this.LD_RRa_R('h', 'l', 'a');
+    this.DEC_HL();
+  }
+
+  private INC_SP() {
+    this.INC_doubleByteR('sp');
+  }
+
+  private INC_HLa() {
+    this.INC_RRa('h', 'l');
+  }
+
+  private DEC_HLa() {
+    this.DEC_RR('h', 'l');
+  }
+
+  private LD_HLa_d8() {
+    this.LD_RRa_d8('h', 'l');
+  }
+
+  private SCF() {
+    this.carryFlag = true;
+  }
+
+  // ***** [7th 8 ops] [0x30 - 0x37] ends  *****
 }
 
 export abstract class MMU {
@@ -588,7 +701,8 @@ export abstract class MMU {
 }
 
 type Z80SingleByteRegisters = 'a' | 'b' | 'c' | 'd' | 'e' | 'h' | 'l' | 'f';
-type Z80Registers = 'a' | 'b' | 'c' | 'd' | 'e' | 'h' | 'l' | 'f' | 'sp' | 'pc';
+type Z80DoubleByteRegisters = 'sp' | 'pc';
+type Z80Registers = Z80SingleByteRegisters | Z80DoubleByteRegisters;
 
 enum Operation {
   Add,
