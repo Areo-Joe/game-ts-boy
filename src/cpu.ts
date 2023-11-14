@@ -186,6 +186,16 @@ class Z80 {
     this.LD_A_L,
     this.LD_A_HLa,
     this.LD_A_A,
+
+    // 17th
+    this.ADD_A_B,
+    this.ADD_A_C,
+    this.ADD_A_D,
+    this.ADD_A_E,
+    this.ADD_A_H,
+    this.ADD_A_L,
+    this.ADD_A_HLa,
+    this.ADD_A_A,
   ];
 
   run() {
@@ -533,6 +543,62 @@ class Z80 {
     sourceRegister: Z80SingleByteRegisters
   ) {
     this.#registers[targetRegister] = this.#registers[sourceRegister];
+  }
+
+  private ADD_R_R(
+    targetRegister: Z80SingleByteRegisters,
+    sourceRegister: Z80SingleByteRegisters
+  ) {
+    const target = this.#registers[targetRegister];
+    const source = this.#registers[sourceRegister];
+
+    const result = addWithOneByte(target, source);
+    this.#registers[targetRegister] = result;
+
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = shouldSetHalfCarryFlag(
+      target,
+      source,
+      Operation.Add,
+      BitLength.OneByte
+    );
+    this.carryFlag = shouldSetCarryFlag(
+      target,
+      source,
+      Operation.Add,
+      BitLength.OneByte
+    );
+  }
+
+  private ADD_R_RRa(
+    targetRegister: Z80SingleByteRegisters,
+    addrHigherByteRegister: Z80SingleByteRegisters,
+    addrLowerByteRegister: Z80SingleByteRegisters
+  ) {
+    const addr = this.joinRegisterPair(
+      addrHigherByteRegister,
+      addrLowerByteRegister
+    );
+
+    const target = this.#registers[targetRegister];
+    const source = this.#memory.readByte(addr);
+    const result = addWithOneByte(target, source);
+
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = shouldSetHalfCarryFlag(
+      target,
+      source,
+      Operation.Add,
+      BitLength.OneByte
+    );
+    this.carryFlag = shouldSetCarryFlag(
+      target,
+      source,
+      Operation.Add,
+      BitLength.OneByte
+    );
   }
 
   // ***** [1st 8 ops] [0x00 - 0x07] starts *****
@@ -1172,6 +1238,42 @@ class Z80 {
   }
 
   // ***** [16th 8 ops] [0x78 - 0x7f] ends  *****
+
+  // ***** [17th 8 ops] [0x80 - 0x87] starts  *****
+
+  private ADD_A_B() {
+    this.ADD_R_R('a', 'b');
+  }
+
+  private ADD_A_C() {
+    this.ADD_R_R('a', 'c');
+  }
+
+  private ADD_A_D() {
+    this.ADD_R_R('a', 'd');
+  }
+
+  private ADD_A_E() {
+    this.ADD_R_R('a', 'e');
+  }
+
+  private ADD_A_H() {
+    this.ADD_R_R('a', 'h');
+  }
+
+  private ADD_A_L() {
+    this.ADD_R_R('a', 'l');
+  }
+
+  private ADD_A_HLa() {
+    this.ADD_R_RRa('a', 'h', 'l');
+  }
+
+  private ADD_A_A() {
+    this.ADD_R_R('a', 'a');
+  }
+
+  // ***** [17th 8 ops] [0x80 - 0x87] ends  *****
 }
 
 export abstract class MMU {
