@@ -364,10 +364,10 @@ class Z80 {
     this.zeroFlag = shouldSetZeroFlag(result);
     this.substractionFlag = false;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
-      val,
-      1,
       Operation.Add,
-      BitLength.OneByte
+      BitLength.OneByte,
+      val,
+      1
     );
   }
 
@@ -378,10 +378,10 @@ class Z80 {
     this.zeroFlag = shouldSetZeroFlag(result);
     this.substractionFlag = true;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
-      val,
-      1,
       Operation.Minus,
-      BitLength.OneByte
+      BitLength.OneByte,
+      val,
+      1
     );
   }
 
@@ -411,16 +411,16 @@ class Z80 {
     );
     this.substractionFlag = false;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
-      target,
-      source,
       Operation.Add,
-      BitLength.DoubleByte
+      BitLength.DoubleByte,
+      target,
+      source
     );
     this.carryFlag = shouldSetCarryFlag(
-      target,
-      source,
       Operation.Add,
-      BitLength.DoubleByte
+      BitLength.DoubleByte,
+      target,
+      source
     );
   }
 
@@ -442,16 +442,16 @@ class Z80 {
     );
     this.substractionFlag = false;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
-      target,
-      source,
       Operation.Add,
-      BitLength.DoubleByte
+      BitLength.DoubleByte,
+      target,
+      source
     );
     this.carryFlag = shouldSetCarryFlag(
-      target,
-      source,
       Operation.Add,
-      BitLength.DoubleByte
+      BitLength.DoubleByte,
+      target,
+      source
     );
   }
 
@@ -498,10 +498,10 @@ class Z80 {
     this.zeroFlag = shouldSetZeroFlag(result);
     this.substractionFlag = false;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
-      val,
-      1,
       Operation.Add,
-      BitLength.OneByte
+      BitLength.OneByte,
+      val,
+      1
     );
   }
 
@@ -519,10 +519,10 @@ class Z80 {
     this.zeroFlag = shouldSetZeroFlag(result);
     this.substractionFlag = true;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
-      val,
-      1,
       Operation.Minus,
-      BitLength.OneByte
+      BitLength.OneByte,
+      val,
+      1
     );
   }
 
@@ -558,16 +558,16 @@ class Z80 {
     this.zeroFlag = shouldSetZeroFlag(result);
     this.substractionFlag = false;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
-      target,
-      source,
       Operation.Add,
-      BitLength.OneByte
+      BitLength.OneByte,
+      target,
+      source
     );
     this.carryFlag = shouldSetCarryFlag(
-      target,
-      source,
       Operation.Add,
-      BitLength.OneByte
+      BitLength.OneByte,
+      target,
+      source
     );
   }
 
@@ -588,16 +588,44 @@ class Z80 {
     this.zeroFlag = shouldSetZeroFlag(result);
     this.substractionFlag = false;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
-      target,
-      source,
       Operation.Add,
-      BitLength.OneByte
+      BitLength.OneByte,
+      target,
+      source
     );
     this.carryFlag = shouldSetCarryFlag(
+      Operation.Add,
+      BitLength.OneByte,
+      target,
+      source
+    );
+  }
+
+  private ADC_R_R(
+    targetRegister: Z80SingleByteRegisters,
+    sourceRegister: Z80SingleByteRegisters
+  ) {
+    const target = this.#registers[targetRegister];
+    const source = this.#registers[sourceRegister];
+
+    const result = addWithOneByte(target, source, this.carryFlag ? 1 : 0);
+    this.#registers[targetRegister] = result;
+
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = shouldSetHalfCarryFlag(
+      Operation.Add,
+      BitLength.OneByte,
       target,
       source,
+      this.carryFlag ? 1 : 0
+    );
+    this.carryFlag = shouldSetCarryFlag(
       Operation.Add,
-      BitLength.OneByte
+      BitLength.OneByte,
+      target,
+      source,
+      this.carryFlag ? 1 : 0
     );
   }
 
@@ -1303,34 +1331,44 @@ function shouldSetZeroFlag(result: number) {
 }
 
 function shouldSetHalfCarryFlag(
-  left: number,
-  right: number,
   operation: Operation,
-  bitLength: number
+  bitLength: number,
+  left: number,
+  ...rights: number[]
 ): boolean {
   assertEven(bitLength);
   const halfBitLength = bitLength / 2;
-  return shouldSetCarryFlag(left, right, operation, halfBitLength);
+  return shouldSetCarryFlag(operation, halfBitLength, left, ...rights);
 }
 
 function shouldSetCarryFlag(
-  left: number,
-  right: number,
   operation: Operation,
-  bitLength: number
+  bitLength: number,
+  left: number,
+  ...rights: number[]
 ): boolean {
   const fullOnes = (1 << bitLength) - 1;
 
-  const [leftWithLimitedBits, rightWithLimitedBits] = [left, right].map(
-    (x) => x & fullOnes
-  );
+  let result = left & fullOnes;
+  const rightsWithLimitedBits = rights.map((right) => right & fullOnes);
 
   if (operation === Operation.Add) {
-    return (
-      ((leftWithLimitedBits + rightWithLimitedBits) & (1 << bitLength)) !== 0
-    );
+    for (let rightWithLimitedBits of rightsWithLimitedBits) {
+      result += rightWithLimitedBits;
+      if ((result & (1 << bitLength)) !== 0) return true;
+    }
+    return false;
+  } else if (operation === Operation.Minus) {
+    for (let rightWithLimitedBits of rightsWithLimitedBits) {
+      if (result < rightWithLimitedBits) {
+        return true;
+      } else {
+        result = result - rightWithLimitedBits;
+      }
+    }
+    return false;
   } else {
-    return leftWithLimitedBits < rightWithLimitedBits;
+    throw new Error('Judging Carry: operation not implemented!');
   }
 }
 
@@ -1353,60 +1391,65 @@ function parseAsSigned(val: number, bitLength: number) {
   }
 }
 
-function addWithOneByte(left: number, right: number) {
+function addWithOneByte(left: number, ...rights: number[]) {
   return performOperationOnOperandsWithBitLength(
-    left,
-    right,
     Operation.Add,
-    BitLength.OneByte
+    BitLength.OneByte,
+    left,
+    ...rights
   );
 }
 
-function minusWithOneByte(left: number, right: number) {
+function minusWithOneByte(left: number, ...rights: number[]) {
   return performOperationOnOperandsWithBitLength(
-    left,
-    right,
     Operation.Minus,
-    BitLength.OneByte
+    BitLength.OneByte,
+    left,
+    ...rights
   );
 }
 
-function addWithDoubleByte(left: number, right: number) {
+function addWithDoubleByte(left: number, ...rights: number[]) {
   return performOperationOnOperandsWithBitLength(
-    left,
-    right,
     Operation.Add,
-    BitLength.DoubleByte
+    BitLength.DoubleByte,
+    left,
+    ...rights
   );
 }
 
-function minusWithDoubleByte(left: number, right: number) {
+function minusWithDoubleByte(left: number, ...rights: number[]) {
   return performOperationOnOperandsWithBitLength(
-    left,
-    right,
     Operation.Minus,
-    BitLength.DoubleByte
+    BitLength.DoubleByte,
+    left,
+    ...rights
   );
 }
 
 function performOperationOnOperandsWithBitLength(
-  left: number,
-  right: number,
   operation: Operation,
-  bitLength: number
+  bitLength: number,
+  left: number,
+  ...rights: number[]
 ) {
-  let unfixedResult: number;
+  const allOnes = (1 << bitLength) - 1;
+  let result = left & allOnes;
+
   switch (operation) {
     case Operation.Add:
-      unfixedResult = left + right;
+      rights.forEach((right) => {
+        result = ((right & allOnes) + result) & allOnes;
+      });
       break;
     case Operation.Minus:
-      unfixedResult = left - right;
+      rights.forEach((right) => {
+        result = (result - (right & allOnes)) & allOnes;
+      });
       break;
     default:
       throw new Error('perform operation: not implemented!');
   }
 
-  const allOnes = (1 << bitLength) - 1;
-  return unfixedResult & allOnes;
+  return result;
 }
