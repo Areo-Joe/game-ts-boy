@@ -196,6 +196,76 @@ class Z80 {
     this.ADD_A_L,
     this.ADD_A_HLa,
     this.ADD_A_A,
+
+    // 18th
+    this.ADC_A_B,
+    this.ADC_A_C,
+    this.ADC_A_D,
+    this.ADC_A_E,
+    this.ADC_A_H,
+    this.ADC_A_L,
+    this.ADC_A_HLa,
+    this.ADC_A_A,
+
+    // 19th
+    this.SUB_A_B,
+    this.SUB_A_C,
+    this.SUB_A_D,
+    this.SUB_A_E,
+    this.SUB_A_H,
+    this.SUB_A_L,
+    this.SUB_A_HLa,
+    this.SUB_A_A,
+
+    // 20th
+    this.SBC_A_B,
+    this.SBC_A_C,
+    this.SBC_A_D,
+    this.SBC_A_E,
+    this.SBC_A_H,
+    this.SBC_A_L,
+    this.SBC_A_HLa,
+    this.SBC_A_A,
+
+    // 21st
+    this.AND_A_B,
+    this.AND_A_C,
+    this.AND_A_D,
+    this.AND_A_E,
+    this.AND_A_H,
+    this.AND_A_L,
+    this.AND_A_HLa,
+    this.AND_A_A,
+
+    // 22nd
+    this.XOR_A_B,
+    this.XOR_A_C,
+    this.XOR_A_D,
+    this.XOR_A_E,
+    this.XOR_A_H,
+    this.XOR_A_L,
+    this.XOR_A_HLa,
+    this.XOR_A_A,
+
+    // 23rd
+    this.OR_A_B,
+    this.OR_A_C,
+    this.OR_A_D,
+    this.OR_A_E,
+    this.OR_A_H,
+    this.OR_A_L,
+    this.OR_A_HLa,
+    this.OR_A_A,
+
+    // 24th
+    this.CP_A_B,
+    this.CP_A_C,
+    this.CP_A_D,
+    this.CP_A_E,
+    this.CP_A_H,
+    this.CP_A_L,
+    this.CP_A_HLa,
+    this.CP_A_A,
   ];
 
   run() {
@@ -626,6 +696,328 @@ class Z80 {
       target,
       source,
       this.carryFlag ? 1 : 0
+    );
+  }
+
+  private ADC_R_RRa(
+    targetRegister: Z80SingleByteRegisters,
+    addrHigherByteRegister: Z80SingleByteRegisters,
+    addrLowerByteRegister: Z80SingleByteRegisters
+  ) {
+    const addr = this.joinRegisterPair(
+      addrHigherByteRegister,
+      addrLowerByteRegister
+    );
+
+    const target = this.#registers[targetRegister];
+    const source = this.#memory.readByte(addr);
+
+    const result = addWithOneByte(target, source, this.carryFlag ? 1 : 0);
+    this.#registers[targetRegister] = result;
+
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = shouldSetHalfCarryFlag(
+      Operation.Add,
+      BitLength.OneByte,
+      target,
+      source,
+      this.carryFlag ? 1 : 0
+    );
+    this.carryFlag = shouldSetCarryFlag(
+      Operation.Add,
+      BitLength.OneByte,
+      target,
+      source,
+      this.carryFlag ? 1 : 0
+    );
+  }
+
+  private SUB_R_R(
+    targetRegister: Z80SingleByteRegisters,
+    sourceRegister: Z80SingleByteRegisters
+  ) {
+    const target = this.#registers[targetRegister];
+    const source = this.#registers[sourceRegister];
+
+    const result = minusWithOneByte(target, source);
+    this.#registers[targetRegister] = result;
+
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = true;
+    this.halfCarryFlag = shouldSetHalfCarryFlag(
+      Operation.Minus,
+      BitLength.OneByte,
+      target,
+      source
+    );
+    this.carryFlag = shouldSetCarryFlag(
+      Operation.Minus,
+      BitLength.OneByte,
+      target,
+      source
+    );
+  }
+
+  private SUB_R_RRa(
+    targetRegister: Z80SingleByteRegisters,
+    addrHigherByteRegister: Z80SingleByteRegisters,
+    addrLowerByteRegister: Z80SingleByteRegisters
+  ) {
+    const addr = this.joinRegisterPair(
+      addrHigherByteRegister,
+      addrLowerByteRegister
+    );
+
+    const target = this.#registers[targetRegister];
+    const source = this.#memory.readByte(addr);
+    const result = minusWithOneByte(target, source);
+
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = true;
+    this.halfCarryFlag = shouldSetHalfCarryFlag(
+      Operation.Minus,
+      BitLength.OneByte,
+      target,
+      source
+    );
+    this.carryFlag = shouldSetCarryFlag(
+      Operation.Minus,
+      BitLength.OneByte,
+      target,
+      source
+    );
+  }
+
+  private SBC_R_R(
+    targetRegister: Z80SingleByteRegisters,
+    sourceRegister: Z80SingleByteRegisters
+  ) {
+    const target = this.#registers[targetRegister];
+    const source = this.#registers[sourceRegister];
+
+    const result = minusWithOneByte(target, source, this.carryFlag ? 1 : 0);
+    this.#registers[targetRegister] = result;
+
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = shouldSetHalfCarryFlag(
+      Operation.Minus,
+      BitLength.OneByte,
+      target,
+      source,
+      this.carryFlag ? 1 : 0
+    );
+    this.carryFlag = shouldSetCarryFlag(
+      Operation.Minus,
+      BitLength.OneByte,
+      target,
+      source,
+      this.carryFlag ? 1 : 0
+    );
+  }
+
+  private SBC_R_RRa(
+    targetRegister: Z80SingleByteRegisters,
+    addrHigherByteRegister: Z80SingleByteRegisters,
+    addrLowerByteRegister: Z80SingleByteRegisters
+  ) {
+    const addr = this.joinRegisterPair(
+      addrHigherByteRegister,
+      addrLowerByteRegister
+    );
+
+    const target = this.#registers[targetRegister];
+    const source = this.#memory.readByte(addr);
+
+    const result = minusWithOneByte(target, source, this.carryFlag ? 1 : 0);
+    this.#registers[targetRegister] = result;
+
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = shouldSetHalfCarryFlag(
+      Operation.Minus,
+      BitLength.OneByte,
+      target,
+      source,
+      this.carryFlag ? 1 : 0
+    );
+    this.carryFlag = shouldSetCarryFlag(
+      Operation.Minus,
+      BitLength.OneByte,
+      target,
+      source,
+      this.carryFlag ? 1 : 0
+    );
+  }
+
+  private AND_R_R(
+    targetRegister: Z80SingleByteRegisters,
+    sourceRegister: Z80SingleByteRegisters
+  ) {
+    const target = this.#registers[targetRegister];
+    const source = this.#registers[sourceRegister];
+
+    const result = andWithOneByte(target, source);
+    this.#registers[targetRegister] = result;
+
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = true;
+    this.carryFlag = false;
+  }
+
+  private AND_R_RRa(
+    targetRegister: Z80SingleByteRegisters,
+    addrHigherByteRegister: Z80SingleByteRegisters,
+    addrLowerByteRegister: Z80SingleByteRegisters
+  ) {
+    const addr = this.joinRegisterPair(
+      addrHigherByteRegister,
+      addrLowerByteRegister
+    );
+
+    const target = this.#registers[targetRegister];
+    const source = this.#memory.readByte(addr);
+
+    const result = andWithOneByte(target, source);
+    this.#registers[targetRegister] = result;
+
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = true;
+    this.carryFlag = false;
+  }
+
+  private XOR_R_R(
+    targetRegister: Z80SingleByteRegisters,
+    sourceRegister: Z80SingleByteRegisters
+  ) {
+    const target = this.#registers[targetRegister];
+    const source = this.#registers[sourceRegister];
+
+    const result = xorWithOneByte(target, source);
+    this.#registers[targetRegister] = result;
+
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = false;
+    this.carryFlag = false;
+  }
+
+  private XOR_R_RRa(
+    targetRegister: Z80SingleByteRegisters,
+    addrHigherByteRegister: Z80SingleByteRegisters,
+    addrLowerByteRegister: Z80SingleByteRegisters
+  ) {
+    const addr = this.joinRegisterPair(
+      addrHigherByteRegister,
+      addrLowerByteRegister
+    );
+
+    const target = this.#registers[targetRegister];
+    const source = this.#memory.readByte(addr);
+
+    const result = xorWithOneByte(target, source);
+    this.#registers[targetRegister] = result;
+
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = false;
+    this.carryFlag = false;
+  }
+
+  private OR_R_R(
+    targetRegister: Z80SingleByteRegisters,
+    sourceRegister: Z80SingleByteRegisters
+  ) {
+    const target = this.#registers[targetRegister];
+    const source = this.#registers[sourceRegister];
+
+    const result = orWithOneByte(target, source);
+    this.#registers[targetRegister] = result;
+
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = false;
+    this.carryFlag = false;
+  }
+
+  private OR_R_RRa(
+    targetRegister: Z80SingleByteRegisters,
+    addrHigherByteRegister: Z80SingleByteRegisters,
+    addrLowerByteRegister: Z80SingleByteRegisters
+  ) {
+    const addr = this.joinRegisterPair(
+      addrHigherByteRegister,
+      addrLowerByteRegister
+    );
+
+    const target = this.#registers[targetRegister];
+    const source = this.#memory.readByte(addr);
+
+    const result = orWithOneByte(target, source);
+    this.#registers[targetRegister] = result;
+
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = false;
+    this.carryFlag = false;
+  }
+
+  private CP_R_R(
+    targetRegister: Z80SingleByteRegisters,
+    sourceRegister: Z80SingleByteRegisters
+  ) {
+    const target = this.#registers[targetRegister];
+    const source = this.#registers[sourceRegister];
+
+    const minusResult = minusWithOneByte(target, source); // we don't set the result here
+
+    this.zeroFlag = shouldSetZeroFlag(minusResult);
+    this.substractionFlag = true;
+    this.halfCarryFlag = shouldSetHalfCarryFlag(
+      Operation.Minus,
+      BitLength.OneByte,
+      target,
+      source
+    );
+    this.carryFlag = shouldSetCarryFlag(
+      Operation.Minus,
+      BitLength.OneByte,
+      target,
+      source
+    );
+  }
+
+  private CP_R_RRa(
+    targetRegister: Z80SingleByteRegisters,
+    addrHigherByteRegister: Z80SingleByteRegisters,
+    addrLowerByteRegister: Z80SingleByteRegisters
+  ) {
+    const addr = this.joinRegisterPair(
+      addrHigherByteRegister,
+      addrLowerByteRegister
+    );
+
+    const target = this.#registers[targetRegister];
+    const source = this.#memory.readByte(addr);
+
+    const minusResult = minusWithOneByte(target, source); // we don't set the result here
+
+    this.zeroFlag = shouldSetZeroFlag(minusResult);
+    this.substractionFlag = true;
+    this.halfCarryFlag = shouldSetHalfCarryFlag(
+      Operation.Minus,
+      BitLength.OneByte,
+      target,
+      source
+    );
+    this.carryFlag = shouldSetCarryFlag(
+      Operation.Minus,
+      BitLength.OneByte,
+      target,
+      source
     );
   }
 
@@ -1302,28 +1694,258 @@ class Z80 {
   }
 
   // ***** [17th 8 ops] [0x80 - 0x87] ends  *****
-}
 
-export abstract class MMU {
-  abstract readByte(addr: number): number;
-  abstract writeByte(addr: number, val: number): void;
+  // ***** [18th 8 ops] [0x88 - 0x8f] starts  *****
 
-  abstract readDoubleByte(addr: number): number;
-  abstract writeDoubleByte(addr: number, val: number): void;
-}
+  private ADC_A_B() {
+    this.ADC_R_R('a', 'b');
+  }
 
-type Z80SingleByteRegisters = 'a' | 'b' | 'c' | 'd' | 'e' | 'h' | 'l' | 'f';
-type Z80DoubleByteRegisters = 'sp' | 'pc';
-type Z80Registers = Z80SingleByteRegisters | Z80DoubleByteRegisters;
+  private ADC_A_C() {
+    this.ADC_R_R('a', 'c');
+  }
 
-enum Operation {
-  Add,
-  Minus,
-}
+  private ADC_A_D() {
+    this.ADC_R_R('a', 'd');
+  }
 
-enum BitLength {
-  OneByte = 8,
-  DoubleByte = 16,
+  private ADC_A_E() {
+    this.ADC_R_R('a', 'e');
+  }
+
+  private ADC_A_H() {
+    this.ADC_R_R('a', 'h');
+  }
+
+  private ADC_A_L() {
+    this.ADC_R_R('a', 'l');
+  }
+
+  private ADC_A_HLa() {
+    this.ADC_R_RRa('a', 'h', 'l');
+  }
+
+  private ADC_A_A() {
+    this.ADC_R_R('a', 'a');
+  }
+
+  // ***** [18th 8 ops] [0x88 - 0x8f] ends  *****
+
+  // ***** [19th 8 ops] [0x90 - 0x97] starts  *****
+
+  private SUB_A_B() {
+    this.SUB_R_R('a', 'b');
+  }
+
+  private SUB_A_C() {
+    this.SUB_R_R('a', 'c');
+  }
+
+  private SUB_A_D() {
+    this.SUB_R_R('a', 'd');
+  }
+
+  private SUB_A_E() {
+    this.SUB_R_R('a', 'e');
+  }
+
+  private SUB_A_H() {
+    this.SUB_R_R('a', 'h');
+  }
+
+  private SUB_A_L() {
+    this.SUB_R_R('a', 'l');
+  }
+
+  private SUB_A_HLa() {
+    this.SUB_R_RRa('a', 'h', 'l');
+  }
+
+  private SUB_A_A() {
+    this.SUB_R_R('a', 'a');
+  }
+
+  // ***** [19th 8 ops] [0x90 - 0x97] ends  *****
+
+  // ***** [20th 8 ops] [0x98 - 0x9f] starts  *****
+
+  private SBC_A_B() {
+    this.SBC_R_R('a', 'b');
+  }
+
+  private SBC_A_C() {
+    this.SBC_R_R('a', 'c');
+  }
+
+  private SBC_A_D() {
+    this.SBC_R_R('a', 'd');
+  }
+
+  private SBC_A_E() {
+    this.SBC_R_R('a', 'e');
+  }
+
+  private SBC_A_H() {
+    this.SBC_R_R('a', 'h');
+  }
+
+  private SBC_A_L() {
+    this.SBC_R_R('a', 'l');
+  }
+
+  private SBC_A_HLa() {
+    this.SBC_R_RRa('a', 'h', 'l');
+  }
+
+  private SBC_A_A() {
+    this.SBC_R_R('a', 'a');
+  }
+
+  // ***** [20th 8 ops] [0x98 - 0x9f] ends  *****
+
+  // ***** [21st 8 ops] [0xa0 - 0xa7] starts  *****
+
+  private AND_A_B() {
+    this.AND_R_R('a', 'b');
+  }
+
+  private AND_A_C() {
+    this.AND_R_R('a', 'c');
+  }
+
+  private AND_A_D() {
+    this.AND_R_R('a', 'd');
+  }
+
+  private AND_A_E() {
+    this.AND_R_R('a', 'e');
+  }
+
+  private AND_A_H() {
+    this.AND_R_R('a', 'h');
+  }
+
+  private AND_A_L() {
+    this.AND_R_R('a', 'l');
+  }
+
+  private AND_A_HLa() {
+    this.AND_R_RRa('a', 'h', 'l');
+  }
+
+  private AND_A_A() {
+    this.AND_R_R('a', 'a');
+  }
+
+  // ***** [21st 8 ops] [0xa0 - 0xa7] ends  *****
+
+  // ***** [22nd 8 ops] [0xa8 - 0xaf] starts  *****
+
+  private XOR_A_B() {
+    this.XOR_R_R('a', 'b');
+  }
+
+  private XOR_A_C() {
+    this.XOR_R_R('a', 'c');
+  }
+
+  private XOR_A_D() {
+    this.XOR_R_R('a', 'd');
+  }
+
+  private XOR_A_E() {
+    this.XOR_R_R('a', 'e');
+  }
+
+  private XOR_A_H() {
+    this.XOR_R_R('a', 'h');
+  }
+
+  private XOR_A_L() {
+    this.XOR_R_R('a', 'l');
+  }
+
+  private XOR_A_HLa() {
+    this.XOR_R_RRa('a', 'h', 'l');
+  }
+
+  private XOR_A_A() {
+    this.XOR_R_R('a', 'a');
+  }
+
+  // ***** [22nd 8 ops] [0xa8 - 0xaf] ends  *****
+
+  // ***** [23rd 8 ops] [0xb0 - 0xb7] starts  *****
+
+  private OR_A_B() {
+    this.OR_R_R('a', 'b');
+  }
+
+  private OR_A_C() {
+    this.OR_R_R('a', 'c');
+  }
+
+  private OR_A_D() {
+    this.OR_R_R('a', 'd');
+  }
+
+  private OR_A_E() {
+    this.OR_R_R('a', 'e');
+  }
+
+  private OR_A_H() {
+    this.OR_R_R('a', 'h');
+  }
+
+  private OR_A_L() {
+    this.OR_R_R('a', 'l');
+  }
+
+  private OR_A_HLa() {
+    this.OR_R_RRa('a', 'h', 'l');
+  }
+
+  private OR_A_A() {
+    this.OR_R_R('a', 'a');
+  }
+
+  // ***** [23rd 8 ops] [0xb0 - 0xb7] ends  *****
+
+  // ***** [24th 8 ops] [0xb8 - 0xbf] starts  *****
+
+  private CP_A_B() {
+    this.CP_R_R('a', 'b');
+  }
+
+  private CP_A_C() {
+    this.CP_R_R('a', 'c');
+  }
+
+  private CP_A_D() {
+    this.CP_R_R('a', 'd');
+  }
+
+  private CP_A_E() {
+    this.CP_R_R('a', 'e');
+  }
+
+  private CP_A_H() {
+    this.CP_R_R('a', 'h');
+  }
+
+  private CP_A_L() {
+    this.CP_R_R('a', 'l');
+  }
+
+  private CP_A_HLa() {
+    this.CP_R_RRa('a', 'h', 'l');
+  }
+
+  private CP_A_A() {
+    this.CP_R_R('a', 'a');
+  }
+
+  // ***** [24th 8 ops] [0xb8 - 0xbf] ends  *****
 }
 
 function shouldSetZeroFlag(result: number) {
@@ -1409,6 +2031,33 @@ function minusWithOneByte(left: number, ...rights: number[]) {
   );
 }
 
+function andWithOneByte(left: number, ...rights: number[]) {
+  return performOperationOnOperandsWithBitLength(
+    Operation.And,
+    BitLength.OneByte,
+    left,
+    ...rights
+  );
+}
+
+function xorWithOneByte(left: number, ...rights: number[]) {
+  return performOperationOnOperandsWithBitLength(
+    Operation.Xor,
+    BitLength.OneByte,
+    left,
+    ...rights
+  );
+}
+
+function orWithOneByte(left: number, ...rights: number[]) {
+  return performOperationOnOperandsWithBitLength(
+    Operation.Or,
+    BitLength.OneByte,
+    left,
+    ...rights
+  );
+}
+
 function addWithDoubleByte(left: number, ...rights: number[]) {
   return performOperationOnOperandsWithBitLength(
     Operation.Add,
@@ -1447,9 +2096,49 @@ function performOperationOnOperandsWithBitLength(
         result = (result - (right & allOnes)) & allOnes;
       });
       break;
+    case Operation.And:
+      rights.forEach((right) => {
+        result = result & (right & allOnes);
+      });
+      break;
+    case Operation.Xor:
+      rights.forEach((right) => {
+        result = result ^ (right & allOnes);
+      });
+      break;
+    case Operation.Or:
+      rights.forEach((right) => {
+        result = result | (right & allOnes);
+      });
+      break;
     default:
       throw new Error('perform operation: not implemented!');
   }
 
   return result;
+}
+
+export abstract class MMU {
+  abstract readByte(addr: number): number;
+  abstract writeByte(addr: number, val: number): void;
+
+  abstract readDoubleByte(addr: number): number;
+  abstract writeDoubleByte(addr: number, val: number): void;
+}
+
+type Z80SingleByteRegisters = 'a' | 'b' | 'c' | 'd' | 'e' | 'h' | 'l' | 'f';
+type Z80DoubleByteRegisters = 'sp' | 'pc';
+type Z80Registers = Z80SingleByteRegisters | Z80DoubleByteRegisters;
+
+enum Operation {
+  Add,
+  Minus,
+  And,
+  Xor,
+  Or,
+}
+
+enum BitLength {
+  OneByte = 8,
+  DoubleByte = 16,
 }
