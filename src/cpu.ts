@@ -106,6 +106,86 @@ class Z80 {
     this.DEC_A,
     this.LD_A_d8,
     this.CCF,
+
+    // 9th
+    this.LD_B_B,
+    this.LD_B_C,
+    this.LD_B_D,
+    this.LD_B_E,
+    this.LD_B_H,
+    this.LD_B_L,
+    this.LD_B_HLa,
+    this.LD_B_A,
+
+    // 10th
+    this.LD_C_B,
+    this.LD_C_C,
+    this.LD_C_D,
+    this.LD_C_E,
+    this.LD_C_H,
+    this.LD_C_L,
+    this.LD_C_HLa,
+    this.LD_C_A,
+
+    // 11th
+    this.LD_D_B,
+    this.LD_D_C,
+    this.LD_D_D,
+    this.LD_D_E,
+    this.LD_D_H,
+    this.LD_D_L,
+    this.LD_D_HLa,
+    this.LD_D_A,
+
+    // 12th
+    this.LD_E_B,
+    this.LD_E_C,
+    this.LD_E_D,
+    this.LD_E_E,
+    this.LD_E_H,
+    this.LD_E_L,
+    this.LD_E_HLa,
+    this.LD_E_A,
+
+    // 13th
+    this.LD_H_B,
+    this.LD_H_C,
+    this.LD_H_D,
+    this.LD_H_E,
+    this.LD_H_H,
+    this.LD_H_L,
+    this.LD_H_HLa,
+    this.LD_H_A,
+
+    // 14th
+    this.LD_L_B,
+    this.LD_L_C,
+    this.LD_L_D,
+    this.LD_L_E,
+    this.LD_L_H,
+    this.LD_L_L,
+    this.LD_L_HLa,
+    this.LD_L_A,
+
+    // 16th
+    this.LD_HLa_B,
+    this.LD_HLa_C,
+    this.LD_HLa_D,
+    this.LD_HLa_E,
+    this.LD_HLa_H,
+    this.LD_HLa_L,
+    this.HALT,
+    this.LD_HLa_A,
+
+    // 16th
+    this.LD_A_B,
+    this.LD_A_C,
+    this.LD_A_D,
+    this.LD_A_E,
+    this.LD_A_H,
+    this.LD_A_L,
+    this.LD_A_HLa,
+    this.LD_A_A,
   ];
 
   run() {
@@ -446,6 +526,13 @@ class Z80 {
     );
     const val = this.readFromPcAndIncPc();
     this.#memory.writeByte(addr, val);
+  }
+
+  private LD_R_R(
+    targetRegister: Z80SingleByteRegisters,
+    sourceRegister: Z80SingleByteRegisters
+  ) {
+    this.#registers[targetRegister] = this.#registers[sourceRegister];
   }
 
   // ***** [1st 8 ops] [0x00 - 0x07] starts *****
@@ -797,6 +884,294 @@ class Z80 {
   }
 
   // ***** [8th 8 ops] [0x38 - 0x3f] ends  *****
+
+  // ***** [9th 8 ops] [0x40 - 0x47] starts  *****
+
+  private LD_B_B() {
+    this.LD_R_R('b', 'b');
+  }
+
+  private LD_B_C() {
+    this.LD_R_R('b', 'c');
+  }
+
+  private LD_B_D() {
+    this.LD_R_R('b', 'd');
+  }
+
+  private LD_B_E() {
+    this.LD_R_R('b', 'e');
+  }
+
+  private LD_B_H() {
+    this.LD_R_R('b', 'h');
+  }
+
+  private LD_B_L() {
+    this.LD_R_R('b', 'l');
+  }
+
+  private LD_B_HLa() {
+    this.LD_R_RRa('b', 'h', 'l');
+  }
+
+  private LD_B_A() {
+    this.LD_R_R('b', 'a');
+  }
+
+  // ***** [9th 8 ops] [0x40 - 0x47] ends  *****
+
+  // ***** [10th 8 ops] [0x48 - 0x4f] starts  *****
+
+  private LD_C_B() {
+    this.LD_R_R('c', 'b');
+  }
+
+  private LD_C_C() {
+    this.LD_R_R('c', 'c');
+  }
+
+  private LD_C_D() {
+    this.LD_R_R('c', 'd');
+  }
+
+  private LD_C_E() {
+    this.LD_R_R('c', 'e');
+  }
+
+  private LD_C_H() {
+    this.LD_R_R('c', 'h');
+  }
+
+  private LD_C_L() {
+    this.LD_R_R('c', 'l');
+  }
+
+  private LD_C_HLa() {
+    this.LD_R_RRa('c', 'h', 'l');
+  }
+
+  private LD_C_A() {
+    this.LD_R_R('c', 'a');
+  }
+
+  // ***** [10th 8 ops] [0x48 - 0x4f] ends  *****
+
+  // ***** [11th 8 ops] [0x50 - 0x57] starts  *****
+
+  private LD_D_B() {
+    this.LD_R_R('d', 'b');
+  }
+
+  private LD_D_C() {
+    this.LD_R_R('d', 'c');
+  }
+
+  private LD_D_D() {
+    this.LD_R_R('d', 'd');
+  }
+
+  private LD_D_E() {
+    this.LD_R_R('d', 'e');
+  }
+
+  private LD_D_H() {
+    this.LD_R_R('d', 'h');
+  }
+
+  private LD_D_L() {
+    this.LD_R_R('d', 'l');
+  }
+
+  private LD_D_HLa() {
+    this.LD_R_RRa('d', 'h', 'l');
+  }
+
+  private LD_D_A() {
+    this.LD_R_R('d', 'a');
+  }
+
+  // ***** [11th 8 ops] [0x50 - 0x57] ends  *****
+
+  // ***** [12th 8 ops] [0x58 - 0x5f] starts  *****
+
+  private LD_E_B() {
+    this.LD_R_R('e', 'b');
+  }
+
+  private LD_E_C() {
+    this.LD_R_R('e', 'c');
+  }
+
+  private LD_E_D() {
+    this.LD_R_R('e', 'd');
+  }
+
+  private LD_E_E() {
+    this.LD_R_R('e', 'e');
+  }
+
+  private LD_E_H() {
+    this.LD_R_R('e', 'h');
+  }
+
+  private LD_E_L() {
+    this.LD_R_R('e', 'l');
+  }
+
+  private LD_E_HLa() {
+    this.LD_R_RRa('e', 'h', 'l');
+  }
+
+  private LD_E_A() {
+    this.LD_R_R('e', 'a');
+  }
+
+  // ***** [12th 8 ops] [0x58 - 0x5f] ends  *****
+
+  // ***** [13th 8 ops] [0x60 - 0x67] starts  *****
+
+  private LD_H_B() {
+    this.LD_R_R('h', 'b');
+  }
+
+  private LD_H_C() {
+    this.LD_R_R('h', 'c');
+  }
+
+  private LD_H_D() {
+    this.LD_R_R('h', 'd');
+  }
+
+  private LD_H_E() {
+    this.LD_R_R('h', 'e');
+  }
+
+  private LD_H_H() {
+    this.LD_R_R('h', 'h');
+  }
+
+  private LD_H_L() {
+    this.LD_R_R('h', 'l');
+  }
+
+  private LD_H_HLa() {
+    this.LD_R_RRa('h', 'h', 'l');
+  }
+
+  private LD_H_A() {
+    this.LD_R_R('h', 'a');
+  }
+
+  // ***** [13th 8 ops] [0x69 - 0x67] ends  *****
+
+  // ***** [14th 8 ops] [0x68 - 0x6f] starts  *****
+
+  private LD_L_B() {
+    this.LD_R_R('l', 'b');
+  }
+
+  private LD_L_C() {
+    this.LD_R_R('l', 'c');
+  }
+
+  private LD_L_D() {
+    this.LD_R_R('l', 'd');
+  }
+
+  private LD_L_E() {
+    this.LD_R_R('l', 'e');
+  }
+
+  private LD_L_H() {
+    this.LD_R_R('l', 'h');
+  }
+
+  private LD_L_L() {
+    this.LD_R_R('l', 'l');
+  }
+
+  private LD_L_HLa() {
+    this.LD_R_RRa('l', 'h', 'l');
+  }
+
+  private LD_L_A() {
+    this.LD_R_R('l', 'a');
+  }
+
+  // ***** [14th 8 ops] [0x68 - 0x6f] ends  *****
+
+  // ***** [15th 8 ops] [0x70 - 0x77] starts  *****
+
+  private LD_HLa_B() {
+    this.LD_RRa_R('h', 'l', 'b');
+  }
+
+  private LD_HLa_C() {
+    this.LD_RRa_R('h', 'l', 'c');
+  }
+
+  private LD_HLa_D() {
+    this.LD_RRa_R('h', 'l', 'd');
+  }
+
+  private LD_HLa_E() {
+    this.LD_RRa_R('h', 'l', 'e');
+  }
+
+  private LD_HLa_H() {
+    this.LD_RRa_R('h', 'l', 'h');
+  }
+
+  private LD_HLa_L() {
+    this.LD_RRa_R('h', 'l', 'l');
+  }
+
+  private HALT() {
+    throw new Error('Unimplemented! Need to figure out its meaning!');
+  }
+
+  private LD_HLa_A() {
+    this.LD_RRa_R('h', 'l', 'a');
+  }
+
+  // ***** [15th 8 ops] [0x70 - 0x77] ends  *****
+
+  // ***** [16th 8 ops] [0x78 - 0x7f] starts  *****
+
+  private LD_A_B() {
+    this.LD_R_R('a', 'b');
+  }
+
+  private LD_A_C() {
+    this.LD_R_R('a', 'c');
+  }
+
+  private LD_A_D() {
+    this.LD_R_R('a', 'd');
+  }
+
+  private LD_A_E() {
+    this.LD_R_R('a', 'e');
+  }
+
+  private LD_A_H() {
+    this.LD_R_R('a', 'h');
+  }
+
+  private LD_A_L() {
+    this.LD_R_R('a', 'l');
+  }
+
+  private LD_A_HLa() {
+    this.LD_R_RRa('a', 'h', 'l');
+  }
+
+  private LD_A_A() {
+    this.LD_R_R('a', 'a');
+  }
+
+  // ***** [16th 8 ops] [0x78 - 0x7f] ends  *****
 }
 
 export abstract class MMU {
