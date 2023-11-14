@@ -96,6 +96,16 @@ class Z80 {
     this.DEC_HLa,
     this.LD_HLa_d8,
     this.SCF,
+
+    // 8th
+    this.JR_C_s8,
+    this.ADD_HL_SP,
+    this.LD_A_HLa_and_DEC_HL,
+    this.DEC_SP,
+    this.INC_A,
+    this.DEC_A,
+    this.LD_A_d8,
+    this.CCF,
   ];
 
   run() {
@@ -377,6 +387,11 @@ class Z80 {
       lowerByteRegister,
       minusWithDoubleByte(val, 1)
     );
+  }
+
+  private DEC_doublyByteR(doubleByteRegister: Z80DoubleByteRegisters) {
+    const val = this.#registers[doubleByteRegister];
+    this.#registers[doubleByteRegister] = minusWithDoubleByte(val, 1);
   }
 
   private INC_RRa(
@@ -738,7 +753,7 @@ class Z80 {
 
   // ***** [7th 8 ops] [0x30 - 0x37] ends  *****
 
-  // ***** [7th 8 ops] [0x30 - 0x37] starts  *****
+  // ***** [8th 8 ops] [0x38 - 0x3f] starts  *****
 
   private JR_C_s8() {
     if (this.carryFlag) {
@@ -750,9 +765,38 @@ class Z80 {
     }
   }
 
-  private ADD_HL_SP() {}
+  private ADD_HL_SP() {
+    this.ADD_RR_doubleByteR('h', 'l', 'sp');
+  }
 
-  // ***** [7th 8 ops] [0x30 - 0x37] ends  *****
+  private LD_A_HLa_and_DEC_HL() {
+    this.LD_R_RRa('a', 'h', 'l');
+    this.DEC_HL();
+  }
+
+  private DEC_SP() {
+    this.DEC_doublyByteR('sp');
+  }
+
+  private INC_A() {
+    this.INC_R('a');
+  }
+
+  private DEC_A() {
+    this.DEC_R('a');
+  }
+
+  private LD_A_d8() {
+    this.LD_R_d8('a');
+  }
+
+  private CCF() {
+    this.halfCarryFlag = !this.halfCarryFlag;
+    this.substractionFlag = false;
+    this.halfCarryFlag = false;
+  }
+
+  // ***** [8th 8 ops] [0x38 - 0x3f] ends  *****
 }
 
 export abstract class MMU {
