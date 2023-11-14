@@ -266,6 +266,16 @@ class Z80 {
     this.CP_A_L,
     this.CP_A_HLa,
     this.CP_A_A,
+
+    // 25th
+    this.RET_NZ,
+    this.POP_BC,
+    this.JP_NZ_d16a,
+    this.JP_d16a,
+    this.CALL_NZ_d16a,
+    this.PUSH_BC,
+    this.ADD_A_d8,
+    this.RST_0,
   ];
 
   run() {
@@ -369,6 +379,16 @@ class Z80 {
   private readFromPcAndIncPc() {
     const ret = this.readFromPc();
     this.pcInc();
+    return ret;
+  }
+
+  private readFromSp() {
+    return this.#memory.readByte(this.#registers.sp);
+  }
+
+  private readFromSpAndIncSp() {
+    const ret = this.readFromSp();
+    this.INC_SP();
     return ret;
   }
 
@@ -1018,6 +1038,65 @@ class Z80 {
       BitLength.OneByte,
       target,
       source
+    );
+  }
+
+  private POP_RR(
+    higherByteRegister: Z80SingleByteRegisters,
+    lowerByteRegister: Z80SingleByteRegisters
+  ) {
+    this.#registers[lowerByteRegister] = this.readFromSpAndIncSp();
+    this.#registers[higherByteRegister] = this.readFromSpAndIncSp();
+  }
+
+  private PUSH_RR(
+    higherByteRegister: Z80SingleByteRegisters,
+    lowerByteRegister: Z80SingleByteRegisters
+  ) {
+    this.DEC_doublyByteR('sp');
+    this.#memory.writeByte(
+      this.#registers.sp,
+      this.#registers[higherByteRegister]
+    );
+    this.DEC_doublyByteR('sp');
+    this.#memory.writeByte(
+      this.#registers.sp,
+      this.#registers[lowerByteRegister]
+    );
+  }
+
+  private PUSH_doubleByteR(doubleByteRegister: Z80DoubleByteRegisters) {
+    this.DEC_doublyByteR('sp');
+    this.#memory.writeByte(
+      this.#registers.sp,
+      higherByteOfDoubleByte(this.#registers[doubleByteRegister])
+    );
+    this.DEC_doublyByteR('sp');
+    this.#memory.writeByte(
+      this.#registers.sp,
+      lowerByteOfDoubleByte(this.#registers[doubleByteRegister])
+    );
+  }
+
+  private ADD_R_d8(targetRegister: Z80SingleByteRegisters) {
+    const registerVal = this.#registers[targetRegister];
+    const val = this.readFromPcAndIncPc();
+
+    const result = addWithOneByte(registerVal, val);
+
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = shouldSetHalfCarryFlag(
+      Operation.Add,
+      BitLength.OneByte,
+      registerVal,
+      val
+    );
+    this.carryFlag = shouldSetCarryFlag(
+      Operation.Add,
+      BitLength.OneByte,
+      registerVal,
+      val
     );
   }
 
@@ -1946,6 +2025,87 @@ class Z80 {
   }
 
   // ***** [24th 8 ops] [0xb8 - 0xbf] ends  *****
+
+  // ***** [25th 8 ops] [0xc0 - 0xc7] starts  *****
+
+  private RET_NZ() {
+    if (this.zeroFlag) {
+      // not return
+    } else {
+      // return
+      const lowerByte = this.readFromSpAndIncSp();
+      const higherByte = this.readFromSpAndIncSp();
+      this.#registers.pc = this.joinTwoByte(higherByte, lowerByte);
+    }
+  }
+
+  private POP_BC() {
+    this.POP_RR('b', 'c');
+  }
+
+  private JP_NZ_d16a() {
+    if (this.zeroFlag) {
+      // no jump
+      this.pcInc();
+      this.pcInc();
+    } else {
+      // jump
+      const addrLowerByte = this.readFromPcAndIncPc();
+      const addrHigherByte = this.readFromPcAndIncPc();
+      const addr = this.joinTwoByte(addrHigherByte, addrLowerByte);
+
+      this.#registers.pc = addr;
+    }
+  }
+
+  private JP_d16a() {
+    const addrLowerByte = this.readFromPcAndIncPc();
+    const addrHigherByte = this.readFromPcAndIncPc();
+    const addr = this.joinTwoByte(addrHigherByte, addrLowerByte);
+
+    this.#registers.pc = addr;
+  }
+
+  private CALL_NZ_d16a() {
+    if (this.zeroFlag) {
+      // no call
+      this.pcInc();
+      this.pcInc();
+    } else {
+      // call
+      const addrLowerByte = this.readFromPcAndIncPc();
+      const addrHigherByte = this.readFromPcAndIncPc();
+      const callAddr = this.joinTwoByte(addrHigherByte, addrLowerByte);
+
+      this.DEC_doublyByteR('sp');
+      this.#memory.writeByte(
+        this.#registers.sp,
+        lowerByteOfDoubleByte(this.#registers.pc)
+      );
+      this.DEC_doublyByteR('sp');
+      this.#memory.writeByte(
+        this.#registers.sp,
+        lowerByteOfDoubleByte(this.#registers.pc)
+      );
+
+      this.#registers.pc = callAddr;
+    }
+  }
+
+  private PUSH_BC() {
+    this.PUSH_RR('b', 'c');
+  }
+
+  private ADD_A_d8() {
+    this.ADD_R_d8('a');
+  }
+
+  private RST_0() {
+    this.PUSH_doubleByteR('pc');
+    this.#registers.pc = 0x00;
+  }
+
+  // ***** [25th 8 ops] [0xc0 - 0xc7] ends  *****
 }
 
 function shouldSetZeroFlag(result: number) {
@@ -2116,6 +2276,14 @@ function performOperationOnOperandsWithBitLength(
   }
 
   return result;
+}
+
+function lowerByteOfDoubleByte(val: number): number {
+  return val & 0xff;
+}
+
+function higherByteOfDoubleByte(val: number): number {
+  return (val & 0xff00) >> 8;
 }
 
 export abstract class MMU {
