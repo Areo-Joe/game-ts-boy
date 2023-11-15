@@ -286,6 +286,16 @@ class Z80 {
     this.CALL_d16a,
     this.ADC_A_d8,
     this.RST_1,
+
+    // 27th
+    this.RET_NC,
+    this.POP_DE,
+    this.JP_NC_d16a,
+    this.EMPTY_OPCODE,
+    this.CALL_NC_d16a,
+    this.PUSH_DE,
+    this.SUB_A_d8,
+    this.RST_2,
   ];
 
   run() {
@@ -1109,6 +1119,7 @@ class Z80 {
       val
     );
   }
+
   private ADC_R_d8(targetRegister: Z80SingleByteRegisters) {
     const registerVal = this.#registers[targetRegister];
     const val = this.readFromPcAndIncPc();
@@ -1131,6 +1142,61 @@ class Z80 {
       val,
       this.carryFlag ? 1 : 0
     );
+  }
+
+  private SUB_R_d8(targetRegister: Z80SingleByteRegisters) {
+    const registerVal = this.#registers[targetRegister];
+    const val = this.readFromPcAndIncPc();
+
+    const result = minusWithOneByte(registerVal, val);
+
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = true;
+    this.halfCarryFlag = shouldSetHalfCarryFlag(
+      Operation.Minus,
+      BitLength.OneByte,
+      registerVal,
+      val
+    );
+    this.carryFlag = shouldSetCarryFlag(
+      Operation.Minus,
+      BitLength.OneByte,
+      registerVal,
+      val
+    );
+  }
+
+  private SBC_R_d8(targetRegister: Z80SingleByteRegisters) {
+    const registerVal = this.#registers[targetRegister];
+    const val = this.readFromPcAndIncPc();
+
+    const result = minusWithOneByte(registerVal, val, this.carryFlag ? 1 : 0);
+
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = true;
+    this.halfCarryFlag = shouldSetHalfCarryFlag(
+      Operation.Minus,
+      BitLength.OneByte,
+      registerVal,
+      val,
+      this.carryFlag ? 1 : 0
+    );
+    this.carryFlag = shouldSetCarryFlag(
+      Operation.Minus,
+      BitLength.OneByte,
+      registerVal,
+      val,
+      this.carryFlag ? 1 : 0
+    );
+  }
+
+  private RST_n(n: number) {
+    this.PUSH_doubleByteR('pc');
+    this.#registers.pc = 0x0080 * n;
+  }
+
+  private EMPTY_OPCODE() {
+    throw new Error('This op should not be called!');
   }
 
   // ***** [1st 8 ops] [0x00 - 0x07] starts *****
@@ -2115,8 +2181,7 @@ class Z80 {
   }
 
   private RST_0() {
-    this.PUSH_doubleByteR('pc');
-    this.#registers.pc = 0x0000;
+    this.RST_n(0);
   }
 
   // ***** [25th 8 ops] [0xc0 - 0xc7] ends  *****
@@ -2188,11 +2253,63 @@ class Z80 {
   }
 
   private RST_1() {
-    this.PUSH_doubleByteR('pc');
-    this.#registers.pc = 0x0008;
+    this.RST_n(1);
   }
 
   // ***** [26th 8 ops] [0xc8 - 0xcf] ends  *****
+
+  // ***** [27th 8 ops] [0xd0 - 0xd7] starts  *****
+
+  private RET_NC() {
+    if (this.carryFlag) {
+      // no return
+    } else {
+      // return
+      this.RET();
+    }
+  }
+
+  private POP_DE() {
+    this.POP_RR('d', 'e');
+  }
+
+  private JP_NC_d16a() {
+    if (this.carryFlag) {
+      // no jump
+      this.pcInc();
+      this.pcInc();
+    } else {
+      // jump
+      this.JP_d16a();
+    }
+  }
+
+  // empty op
+
+  private CALL_NC_d16a() {
+    if (this.carryFlag) {
+      // no call
+      this.pcInc();
+      this.pcInc();
+    } else {
+      // call
+      this.CALL_d16a();
+    }
+  }
+
+  private PUSH_DE() {
+    this.PUSH_RR('d', 'e');
+  }
+
+  private SUB_A_d8() {
+    this.SUB_R_d8('a');
+  }
+
+  private RST_2() {
+    this.RST_n(2);
+  }
+
+  // ***** [27th 8 ops] [0xd0 - 0xd7] ends  *****
 }
 
 function shouldSetZeroFlag(result: number) {
