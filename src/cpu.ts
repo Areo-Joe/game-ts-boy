@@ -167,7 +167,7 @@ class Z80 {
     this.LD_L_HLa,
     this.LD_L_A,
 
-    // 16th
+    // 15th
     this.LD_HLa_B,
     this.LD_HLa_C,
     this.LD_HLa_D,
@@ -296,6 +296,36 @@ class Z80 {
     this.PUSH_DE,
     this.SUB_A_d8,
     this.RST_2,
+
+    // 28th
+    this.RET_C,
+    this.RETI,
+    this.JP_C_d16a,
+    this.EMPTY_OPCODE,
+    this.CALL_C_d16a,
+    this.EMPTY_OPCODE,
+    this.SBC_A_d8,
+    this.RST_3,
+
+    // 29th
+    this.LD_d8a_A,
+    this.POP_HL,
+    this.LD_Ca_A,
+    this.EMPTY_OPCODE,
+    this.EMPTY_OPCODE,
+    this.PUSH_HL,
+    this.AND_d8,
+    this.RST_4,
+
+    // 30th
+    this.ADD_SP_s8,
+    this.JP_HL,
+    this.LD_d16a_A,
+    this.EMPTY_OPCODE,
+    this.EMPTY_OPCODE,
+    this.EMPTY_OPCODE,
+    this.XOR_d8,
+    this.RST_5,
   ];
 
   run() {
@@ -1197,6 +1227,10 @@ class Z80 {
 
   private EMPTY_OPCODE() {
     throw new Error('This op should not be called!');
+  }
+
+  private signal_io_device() {
+    throw new Error('Signaling device is currently unimplemented!');
   }
 
   // ***** [1st 8 ops] [0x00 - 0x07] starts *****
@@ -2310,6 +2344,163 @@ class Z80 {
   }
 
   // ***** [27th 8 ops] [0xd0 - 0xd7] ends  *****
+
+  // ***** [28th 8 ops] [0xd8 - 0xdf] starts  *****
+
+  private RET_C() {
+    if (this.carryFlag) {
+      // ret
+      this.RET();
+    } else {
+      // no ret
+    }
+  }
+
+  private RETI() {
+    this.RET();
+    this.signal_io_device();
+  }
+
+  private JP_C_d16a() {
+    if (this.carryFlag) {
+      // jump
+      this.JP_d16a();
+    } else {
+      // no jump
+      this.pcInc();
+      this.pcInc();
+    }
+  }
+
+  // empty opcode
+
+  private CALL_C_d16a() {
+    if (!this.carryFlag) {
+      // no call
+      this.pcInc();
+      this.pcInc();
+    } else {
+      // call
+      this.CALL_d16a();
+    }
+  }
+
+  // empty opcode
+
+  private SBC_A_d8() {
+    this.SBC_R_d8('a');
+  }
+
+  private RST_3() {
+    this.RST_n(3);
+  }
+
+  // ***** [28th 8 ops] [0xd8 - 0xdf] ends  *****
+
+  // ***** [29th 8 ops] [0xe0 - 0xe7] starts  *****
+
+  private LD_d8a_A() {
+    const d8 = this.readFromPcAndIncPc();
+    const addr = addWithDoubleByte(0xFF00, d8);
+    this.#memory.writeByte(addr, this.#registers.a);
+  }
+
+  private POP_HL() {
+    this.POP_RR('h', 'l');
+  }
+
+  private LD_Ca_A() {
+    const addr = this.#registers.c;
+    this.#memory.writeByte(addr, this.#registers.a);
+  }
+
+  // empty opcode
+  
+  // empty opcode
+
+  private PUSH_HL() {
+    this.PUSH_RR('h', 'l');
+  }
+
+  private AND_d8() {
+    const target = this.readFromPcAndIncPc();
+    const source = this.#registers.a;
+
+    const result = andWithOneByte(target, source);
+    this.#registers.a = result;
+
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = true;
+    this.carryFlag = false;
+  }
+
+  private RST_4() {
+    this.RST_n(4);
+  }
+
+  // ***** [29th 8 ops] [0xe0 - 0xe7] ends  *****
+
+  // ***** [30th 8 ops] [0xe8 - 0xef] starts  *****
+
+  private ADD_SP_s8() {
+    const notParsed8Bit = this.readFromPcAndIncPc();
+    const parsed = parseAsSigned(notParsed8Bit, BitLength.OneByte);
+    const sp = this.#registers.sp;
+    const result = addWithDoubleByte(sp, parsed);
+    this.#registers.sp = result;
+    this.zeroFlag = false;
+    this.substractionFlag = false;
+    this.halfCarryFlag = shouldSetHalfCarryFlag(
+      Operation.Add,
+      BitLength.DoubleByte,
+      sp,
+      parsed
+    );
+    this.carryFlag = shouldSetCarryFlag(
+      Operation.Add,
+      BitLength.OneByte,
+      sp,
+      parsed
+    );
+  }
+
+  private JP_HL() {
+    const addr = this.joinRegisterPair('h', 'l');
+    this.#registers.pc = addr;
+  }
+
+  private LD_d16a_A() {
+    const addrLB = this.readFromPcAndIncPc();
+    const addrHB = this.readFromPcAndIncPc();
+    const addr = this.joinTwoByte(addrHB, addrLB);
+    this.#memory.writeByte(addr, this.#registers.a);
+  }
+
+  // empty opcode
+
+  // empty opcode
+
+  // empty opcode
+
+  private XOR_d8() {
+    const registerVal = this.#registers.a;
+    const val = this.readFromPcAndIncPc();
+
+    const result = xorWithOneByte(registerVal, val);
+    this.#registers.a = result;
+
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = false;
+    this.carryFlag = false;
+  }
+
+  private RST_5() {
+    this.RST_n(5);
+  }
+
+  // ***** [30th 8 ops] [0xe8 - 0xef] ends  *****
 }
 
 function shouldSetZeroFlag(result: number) {
