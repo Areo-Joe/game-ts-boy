@@ -326,6 +326,16 @@ class Z80 {
     this.EMPTY_OPCODE,
     this.XOR_d8,
     this.RST_5,
+
+    // 31st
+    this.LD_A_d8a,
+    this.POP_AF,
+    this.LD_A_Ca,
+    this.DI,
+    this.EMPTY_OPCODE,
+    this.PUSH_AF,
+    this.OR_d8,
+    this.RST_6,
   ];
 
   run() {
@@ -1232,6 +1242,41 @@ class Z80 {
   private signal_io_device() {
     throw new Error('Signaling device is currently unimplemented!');
   }
+
+  private LD_d8a_R(sourceRegister: Z80SingleByteRegisters) {
+    const d8 = this.readFromPcAndIncPc();
+    const addr = addWithDoubleByte(0xFF00, d8);
+    this.#memory.writeByte(addr, this.#registers[sourceRegister]);
+  }
+
+  private LD_Ra_R(targetRegister: Z80SingleByteRegisters, sourceRegister: Z80SingleByteRegisters) {
+    const halfAddr = this.#registers[targetRegister];
+    const addr = addWithDoubleByte(0xFF00, halfAddr);
+    this.#memory.writeByte(addr, this.#registers[sourceRegister]);
+  }
+
+  private LD_d16a_R(sourceRegister: Z80SingleByteRegisters) {
+    const addrLB = this.readFromPcAndIncPc();
+    const addrHB = this.readFromPcAndIncPc();
+    const addr = this.joinTwoByte(addrHB, addrLB);
+    this.#memory.writeByte(addr, this.#registers[sourceRegister]);
+  }
+
+  private LD_R_d8a(targetRegister: Z80SingleByteRegisters) {
+    const halfAddr = this.readFromPcAndIncPc();
+    const addr = addWithDoubleByte(0xFF00, halfAddr);
+    const val = this.#memory.readByte(addr);
+    this.#registers[targetRegister] = val;
+  }
+
+  private LD_R_Ra(targetRegister: Z80SingleByteRegisters, sourceRegister: Z80SingleByteRegisters) {
+    const sourceHalfAddr = this.#registers[sourceRegister];
+    const sourceAddr = addWithDoubleByte(0xFF00, sourceHalfAddr);
+    const val = this.#memory.readByte(sourceAddr);
+    this.#registers[targetRegister] = val;
+  }
+
+  // ***** General Ops ends *****
 
   // ***** [1st 8 ops] [0x00 - 0x07] starts *****
 
@@ -2166,9 +2211,7 @@ class Z80 {
       // not return
     } else {
       // return
-      const lowerByte = this.readFromSpAndIncSp();
-      const higherByte = this.readFromSpAndIncSp();
-      this.#registers.pc = this.joinTwoByte(higherByte, lowerByte);
+      this.RET();
     }
   }
 
@@ -2400,9 +2443,7 @@ class Z80 {
   // ***** [29th 8 ops] [0xe0 - 0xe7] starts  *****
 
   private LD_d8a_A() {
-    const d8 = this.readFromPcAndIncPc();
-    const addr = addWithDoubleByte(0xFF00, d8);
-    this.#memory.writeByte(addr, this.#registers.a);
+    this.LD_d8a_R('a');
   }
 
   private POP_HL() {
@@ -2410,8 +2451,7 @@ class Z80 {
   }
 
   private LD_Ca_A() {
-    const addr = this.#registers.c;
-    this.#memory.writeByte(addr, this.#registers.a);
+    this.LD_Ra_R('c', 'a');
   }
 
   // empty opcode
@@ -2471,10 +2511,7 @@ class Z80 {
   }
 
   private LD_d16a_A() {
-    const addrLB = this.readFromPcAndIncPc();
-    const addrHB = this.readFromPcAndIncPc();
-    const addr = this.joinTwoByte(addrHB, addrLB);
-    this.#memory.writeByte(addr, this.#registers.a);
+    this.LD_d16a_R('a');
   }
 
   // empty opcode
@@ -2505,10 +2542,7 @@ class Z80 {
   // ***** [31st 8 ops] [0xf0 - 0xf7] starts  *****
 
   private LD_A_d8a() {
-    const halfAddr = this.readFromPcAndIncPc();
-    const addr = addWithDoubleByte(0xFF00, halfAddr);
-    const val = this.#memory.readByte(addr);
-    this.#registers.a = val;
+    this.LD_R_d8a('a');
   }
 
   private POP_AF() {
@@ -2516,6 +2550,32 @@ class Z80 {
   }
 
   private LD_A_Ca() {
+    this.LD_R_Ra('a', 'c');
+  }
+
+  private DI() {
+    throw new Error("unimplemented!");
+  }
+
+  // empty op
+
+  private PUSH_AF() {
+    this.PUSH_RR('a', 'f');
+  }
+
+  private OR_d8() {
+    const d8 = this.readFromPcAndIncPc();
+    const result = orWithOneByte(d8, this.#registers.a);
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = false;
+    this.carryFlag = false;
+
+    this.#registers.a = result;
+  }
+
+  private RST_6() {
+    this.RST_n(6);
   }
 
   // ***** [31st 8 ops] [0xf0 - 0xf7] ends  *****
