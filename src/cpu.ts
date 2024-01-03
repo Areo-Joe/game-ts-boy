@@ -2501,6 +2501,24 @@ class Z80 {
   }
 
   // ***** [30th 8 ops] [0xe8 - 0xef] ends  *****
+
+  // ***** [31st 8 ops] [0xf0 - 0xf7] starts  *****
+
+  private LD_A_d8a() {
+    const halfAddr = this.readFromPcAndIncPc();
+    const addr = addWithDoubleByte(0xFF00, halfAddr);
+    const val = this.#memory.readByte(addr);
+    this.#registers.a = val;
+  }
+
+  private POP_AF() {
+    this.POP_RR('a', 'f');
+  }
+
+  private LD_A_Ca() {
+  }
+
+  // ***** [31st 8 ops] [0xf0 - 0xf7] ends  *****
 }
 
 function shouldSetZeroFlag(result: number) {
