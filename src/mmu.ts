@@ -42,18 +42,20 @@ export class GameBoyMMU extends MMU {
             throw new Error(`Invalid address: 0x${addr.toString(16)}`);
         }
 
-        let i = 0;
-        let count = this.#memory[0].length;
-        while (addr > count) {
-            i++;
-            count += this.#memory[i].length;
+        let memoryDivisionIndex = 0;
+        let accumulatedMemoryUnitCount = this.#memory[0].length;
+        while (!isMemoryUnitEnough(accumulatedMemoryUnitCount, addr)) {
+            memoryDivisionIndex++;
+            accumulatedMemoryUnitCount += this.#memory[memoryDivisionIndex].length;
         }
+        const countExceptCurrentDivision = accumulatedMemoryUnitCount - this.#memory[memoryDivisionIndex].length;
+        const offsetInCurrentDivision = addr - countExceptCurrentDivision;
 
-        if (this.#memory[i] === this.#UNUSABLE_MEMORY) {
-            throw new Error(`Invalid attempt to access unusable memory area: 0x${addr.toString(16)}`);
+        return [memoryDivisionIndex, offsetInCurrentDivision];
+        
+        function isMemoryUnitEnough(memoryUnitCount: number, addr: number) {
+            return memoryUnitCount >= addr + 1;
         }
-
-        return [i, addr - (count - this.#memory[i].length)];
     }
 
     readByte(addr: number): number {
