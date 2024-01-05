@@ -336,6 +336,16 @@ class Z80 {
     this.PUSH_AF,
     this.OR_d8,
     this.RST_6,
+
+    // 32nd
+    this.LD_HL_SPPlusD8,
+    this.LD_SP_HL,
+    this.LD_A_d16a,
+    this.EI,
+    this.EMPTY_OPCODE,
+    this.EMPTY_OPCODE,
+    this.CP_d8,
+    this.RST_7,
   ];
 
   run() {
@@ -2626,9 +2636,17 @@ class Z80 {
     const a = this.#registers.a;
     const result = minusWithOneByte(a, d8);
     
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = true;
+    this.halfCarryFlag = shouldSetHalfCarryFlag(Operation.Minus, BitLength.OneByte, a, d8);
+    this.carryFlag = shouldSetCarryFlag(Operation.Minus, BitLength.OneByte, a, d8);
   }
 
-  // ***** [31nd 8 ops] [0xf8 - 0xff] ends  *****
+  private RST_7() {
+    this.RST_n(7);
+  }
+
+  // ***** [32nd 8 ops] [0xf8 - 0xff] ends  *****
 }
 
 function shouldSetZeroFlag(result: number) {
