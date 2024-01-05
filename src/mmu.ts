@@ -52,6 +52,12 @@ export class GameBoyMMU extends MMU {
       accumulatedMemoryUnitCount - this.#memory[memoryDivisionIndex].length;
     const offsetInCurrentDivision = addr - countExceptCurrentDivision;
 
+    if (this.#memory[memoryDivisionIndex] === this.#UNUSABLE_MEMORY) {
+      throw new Error(
+        `Accessing UNUSABLE_MEMORY! Address: 0x${addr.toString(16)}`
+      );
+    }
+
     return [memoryDivisionIndex, offsetInCurrentDivision];
 
     function isMemoryUnitEnough(memoryUnitCount: number, addr: number) {
