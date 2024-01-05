@@ -1276,6 +1276,14 @@ class Z80 {
     this.#registers[targetRegister] = val;
   }
 
+  private LD_R_d16a(targetRegister: Z80SingleByteRegisters) {
+    const addrL = this.readFromPcAndIncPc();
+    const addrH = this.readFromPcAndIncPc();
+    const addr = this.joinTwoByte(addrH, addrL);
+    const val = this.#memory.readByte(addr);
+    this.#registers[targetRegister] = val;
+  }
+
   // ***** General Ops ends *****
 
   // ***** [1st 8 ops] [0x00 - 0x07] starts *****
@@ -2579,6 +2587,48 @@ class Z80 {
   }
 
   // ***** [31st 8 ops] [0xf0 - 0xf7] ends  *****
+
+  // ***** [32nd 8 ops] [0xf8 - 0xff] starts  *****
+
+  private LD_HL_SPPlusD8() {
+    const notParsed8Bit = this.readFromPcAndIncPc();
+    const parsed = parseAsSigned(notParsed8Bit, BitLength.OneByte);
+    const originSp = this.#registers.sp;
+    const sp = addWithDoubleByte(originSp, parsed);
+    this.#registers.sp = sp;
+    this.distributeToRegisterPair('h', 'l', sp);
+    
+    this.zeroFlag = false;
+    this.substractionFlag = false;
+    this.halfCarryFlag = shouldSetHalfCarryFlag(Operation.Add, BitLength.DoubleByte, originSp, parsed);
+    this.halfCarryFlag = shouldSetCarryFlag(Operation.Add, BitLength.DoubleByte, originSp, parsed);
+  }
+
+  private LD_SP_HL() {
+    const result = this.joinRegisterPair('h', 'l');
+    this.#registers.sp = result;
+  }
+
+  private LD_A_d16a() {
+    this.LD_R_d16a('a');
+  }
+
+  private EI() {
+    throw new Error('unimplemented');
+  }
+
+  // empty op
+  
+  // empty op
+
+  private CP_d8() {
+    const d8 = this.readFromPcAndIncPc();
+    const a = this.#registers.a;
+    const result = minusWithOneByte(a, d8);
+    
+  }
+
+  // ***** [31nd 8 ops] [0xf8 - 0xff] ends  *****
 }
 
 function shouldSetZeroFlag(result: number) {
