@@ -1,9 +1,28 @@
+import { GBTimer } from './timer';
+import {
+  BitLength,
+  Operation,
+  addWithDoubleByte,
+  addWithOneByte,
+  minusWithOneByte,
+  minusWithDoubleByte,
+  xorWithOneByte,
+  orWithOneByte,
+  lowerByteOfDoubleByte,
+  higherByteOfDoubleByte,
+  andWithOneByte,
+  parseAsSigned,
+  assertEven,
+} from './utils';
+
 // GB's cpu is a modified Z80, so...
 class Z80 {
   #memory: MMU;
+  #timer: GBTimer;
 
-  constructor(mmu: MMU) {
+  constructor(mmu: MMU, timer: GBTimer) {
     this.#memory = mmu;
+    this.#timer = timer;
   }
 
   #registers = {
@@ -19,11 +38,18 @@ class Z80 {
     f: 0, // flag,
     sp: 0, // stack pointer
     pc: 0, // program counter
+
+    // measures the time used by each instruction, corresponding to m/t clock
+    m: 0,
+    t: 0,
   };
 
+  // CPU clock, speed(m-clock) === 1 / 4 * speed(t-clock)
+  // m-clock is the base speed
+  // accumulated time
   #clock = {
-    last: 0, // time to run last instruction
-    total: 0, // time total
+    m: 0,
+    t: 0,
   };
 
   #opMap = [
@@ -352,6 +378,10 @@ class Z80 {
     while (true) {
       const opcode = this.readFromPcAndIncPc();
       this.#opMap[opcode]();
+      this.#timer.inc(this.#registers.m);
+      this.#registers.t = this.#registers.m = 0;
+      this.#clock.t += this.#registers.t;
+      this.#clock.m += this.#registers.m;
     }
   }
 
@@ -365,6 +395,11 @@ class Z80 {
 
   clearFlag() {
     this.#registers.f = 0;
+  }
+
+  private spendTime(mClock: number) {
+    this.#registers.t = mClock * 4;
+    this.#registers.m = mClock;
   }
 
   private joinTwoByte(higherByte: number, lowerByte: number) {
@@ -1255,13 +1290,16 @@ class Z80 {
 
   private LD_d8a_R(sourceRegister: Z80SingleByteRegisters) {
     const d8 = this.readFromPcAndIncPc();
-    const addr = addWithDoubleByte(0xFF00, d8);
+    const addr = addWithDoubleByte(0xff00, d8);
     this.#memory.writeByte(addr, this.#registers[sourceRegister]);
   }
 
-  private LD_Ra_R(targetRegister: Z80SingleByteRegisters, sourceRegister: Z80SingleByteRegisters) {
+  private LD_Ra_R(
+    targetRegister: Z80SingleByteRegisters,
+    sourceRegister: Z80SingleByteRegisters
+  ) {
     const halfAddr = this.#registers[targetRegister];
-    const addr = addWithDoubleByte(0xFF00, halfAddr);
+    const addr = addWithDoubleByte(0xff00, halfAddr);
     this.#memory.writeByte(addr, this.#registers[sourceRegister]);
   }
 
@@ -1274,14 +1312,17 @@ class Z80 {
 
   private LD_R_d8a(targetRegister: Z80SingleByteRegisters) {
     const halfAddr = this.readFromPcAndIncPc();
-    const addr = addWithDoubleByte(0xFF00, halfAddr);
+    const addr = addWithDoubleByte(0xff00, halfAddr);
     const val = this.#memory.readByte(addr);
     this.#registers[targetRegister] = val;
   }
 
-  private LD_R_Ra(targetRegister: Z80SingleByteRegisters, sourceRegister: Z80SingleByteRegisters) {
+  private LD_R_Ra(
+    targetRegister: Z80SingleByteRegisters,
+    sourceRegister: Z80SingleByteRegisters
+  ) {
     const sourceHalfAddr = this.#registers[sourceRegister];
-    const sourceAddr = addWithDoubleByte(0xFF00, sourceHalfAddr);
+    const sourceAddr = addWithDoubleByte(0xff00, sourceHalfAddr);
     const val = this.#memory.readByte(sourceAddr);
     this.#registers[targetRegister] = val;
   }
@@ -2473,7 +2514,7 @@ class Z80 {
   }
 
   // empty opcode
-  
+
   // empty opcode
 
   private PUSH_HL() {
@@ -2572,7 +2613,7 @@ class Z80 {
   }
 
   private DI() {
-    throw new Error("unimplemented!");
+    throw new Error('unimplemented!');
   }
 
   // empty op
@@ -2607,11 +2648,21 @@ class Z80 {
     const sp = addWithDoubleByte(originSp, parsed);
     this.#registers.sp = sp;
     this.distributeToRegisterPair('h', 'l', sp);
-    
+
     this.zeroFlag = false;
     this.substractionFlag = false;
-    this.halfCarryFlag = shouldSetHalfCarryFlag(Operation.Add, BitLength.DoubleByte, originSp, parsed);
-    this.halfCarryFlag = shouldSetCarryFlag(Operation.Add, BitLength.DoubleByte, originSp, parsed);
+    this.halfCarryFlag = shouldSetHalfCarryFlag(
+      Operation.Add,
+      BitLength.DoubleByte,
+      originSp,
+      parsed
+    );
+    this.halfCarryFlag = shouldSetCarryFlag(
+      Operation.Add,
+      BitLength.DoubleByte,
+      originSp,
+      parsed
+    );
   }
 
   private LD_SP_HL() {
@@ -2628,18 +2679,28 @@ class Z80 {
   }
 
   // empty op
-  
+
   // empty op
 
   private CP_d8() {
     const d8 = this.readFromPcAndIncPc();
     const a = this.#registers.a;
     const result = minusWithOneByte(a, d8);
-    
+
     this.zeroFlag = shouldSetZeroFlag(result);
     this.substractionFlag = true;
-    this.halfCarryFlag = shouldSetHalfCarryFlag(Operation.Minus, BitLength.OneByte, a, d8);
-    this.carryFlag = shouldSetCarryFlag(Operation.Minus, BitLength.OneByte, a, d8);
+    this.halfCarryFlag = shouldSetHalfCarryFlag(
+      Operation.Minus,
+      BitLength.OneByte,
+      a,
+      d8
+    );
+    this.carryFlag = shouldSetCarryFlag(
+      Operation.Minus,
+      BitLength.OneByte,
+      a,
+      d8
+    );
   }
 
   private RST_7() {
@@ -2695,138 +2756,6 @@ function shouldSetCarryFlag(
   }
 }
 
-function assertEven(x: number) {
-  if (x % 2 !== 0) {
-    throw new Error(`${x} is not even!`);
-  }
-}
-
-function parseAsSigned(val: number, bitLength: number) {
-  const allOnes = (1 << bitLength) - 1;
-
-  const lastBit = ((1 << (bitLength - 1)) & val) >> (bitLength - 1);
-  if (lastBit === 1) {
-    return -((~val + 1) & allOnes);
-  } else if (lastBit === 0) {
-    return val & ((1 << bitLength) - 1);
-  } else {
-    throw new Error('Bug when parsing!');
-  }
-}
-
-function addWithOneByte(left: number, ...rights: number[]) {
-  return performOperationOnOperandsWithBitLength(
-    Operation.Add,
-    BitLength.OneByte,
-    left,
-    ...rights
-  );
-}
-
-function minusWithOneByte(left: number, ...rights: number[]) {
-  return performOperationOnOperandsWithBitLength(
-    Operation.Minus,
-    BitLength.OneByte,
-    left,
-    ...rights
-  );
-}
-
-function andWithOneByte(left: number, ...rights: number[]) {
-  return performOperationOnOperandsWithBitLength(
-    Operation.And,
-    BitLength.OneByte,
-    left,
-    ...rights
-  );
-}
-
-function xorWithOneByte(left: number, ...rights: number[]) {
-  return performOperationOnOperandsWithBitLength(
-    Operation.Xor,
-    BitLength.OneByte,
-    left,
-    ...rights
-  );
-}
-
-function orWithOneByte(left: number, ...rights: number[]) {
-  return performOperationOnOperandsWithBitLength(
-    Operation.Or,
-    BitLength.OneByte,
-    left,
-    ...rights
-  );
-}
-
-function addWithDoubleByte(left: number, ...rights: number[]) {
-  return performOperationOnOperandsWithBitLength(
-    Operation.Add,
-    BitLength.DoubleByte,
-    left,
-    ...rights
-  );
-}
-
-function minusWithDoubleByte(left: number, ...rights: number[]) {
-  return performOperationOnOperandsWithBitLength(
-    Operation.Minus,
-    BitLength.DoubleByte,
-    left,
-    ...rights
-  );
-}
-
-function performOperationOnOperandsWithBitLength(
-  operation: Operation,
-  bitLength: number,
-  left: number,
-  ...rights: number[]
-) {
-  const allOnes = (1 << bitLength) - 1;
-  let result = left & allOnes;
-
-  switch (operation) {
-    case Operation.Add:
-      rights.forEach((right) => {
-        result = ((right & allOnes) + result) & allOnes;
-      });
-      break;
-    case Operation.Minus:
-      rights.forEach((right) => {
-        result = (result - (right & allOnes)) & allOnes;
-      });
-      break;
-    case Operation.And:
-      rights.forEach((right) => {
-        result = result & (right & allOnes);
-      });
-      break;
-    case Operation.Xor:
-      rights.forEach((right) => {
-        result = result ^ (right & allOnes);
-      });
-      break;
-    case Operation.Or:
-      rights.forEach((right) => {
-        result = result | (right & allOnes);
-      });
-      break;
-    default:
-      throw new Error('perform operation: not implemented!');
-  }
-
-  return result;
-}
-
-function lowerByteOfDoubleByte(val: number): number {
-  return val & 0xff;
-}
-
-function higherByteOfDoubleByte(val: number): number {
-  return (val & 0xff00) >> 8;
-}
-
 export abstract class MMU {
   abstract readByte(addr: number): number;
   abstract writeByte(addr: number, val: number): void;
@@ -2838,16 +2767,3 @@ export abstract class MMU {
 type Z80SingleByteRegisters = 'a' | 'b' | 'c' | 'd' | 'e' | 'h' | 'l' | 'f';
 type Z80DoubleByteRegisters = 'sp' | 'pc';
 type Z80Registers = Z80SingleByteRegisters | Z80DoubleByteRegisters;
-
-enum Operation {
-  Add,
-  Minus,
-  And,
-  Xor,
-  Or,
-}
-
-enum BitLength {
-  OneByte = 8,
-  DoubleByte = 16,
-}
