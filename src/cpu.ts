@@ -514,6 +514,7 @@ class Z80 {
     const higherByte = this.readFromPcAndIncPc();
     this.#registers[higherByteRegister] = higherByte;
     this.#registers[lowerByteRegister] = lowerByte;
+    return 3 as const;
   }
 
   private LD_doubleByteR_d16(doubleBytreRegister: Z80DoubleByteRegisters) {
@@ -535,6 +536,8 @@ class Z80 {
       addrLowerByteRegister
     );
     this.#memory.writeByte(addr, this.#registers[valueRegister]);
+
+    return 2 as const;
   }
 
   private INC_RR(
@@ -547,6 +550,8 @@ class Z80 {
       lowerByteRegister,
       addWithDoubleByte(val, 1)
     );
+
+    return 2 as const;
   }
 
   private INC_doubleByteR(doubleByteRegister: Z80DoubleByteRegisters) {
@@ -568,6 +573,8 @@ class Z80 {
       val,
       1
     );
+
+    return 1 as const;
   }
 
   private DEC_R(register: Z80SingleByteRegisters) {
@@ -582,10 +589,14 @@ class Z80 {
       val,
       1
     );
+
+    return 1 as const;
   }
 
   private LD_R_d8(register: Z80SingleByteRegisters) {
     this.#registers[register] = this.readFromPcAndIncPc();
+
+    return 2 as const;
   }
 
   private ADD_RR_RR(
@@ -1343,30 +1354,32 @@ class Z80 {
 
   // ***** [1st 8 ops] [0x00 - 0x07] starts *****
 
-  private NOP() {}
+  private NOP() {
+    return 1 as const;
+  }
 
   private LD_BC_d16() {
-    this.LD_RR_d16('b', 'c');
+    return this.LD_RR_d16('b', 'c');
   }
 
   private LD_BCa_A() {
-    this.LD_RRa_R('b', 'c', 'a');
+    return this.LD_RRa_R('b', 'c', 'a');
   }
 
   private INC_BC() {
-    this.INC_RR('b', 'c');
+    return this.INC_RR('b', 'c');
   }
 
   private INC_B() {
-    this.INC_R('b');
+    return this.INC_R('b');
   }
 
   private DEC_B() {
-    this.DEC_R('b');
+    return this.DEC_R('b');
   }
 
   private LD_B_d8() {
-    this.LD_R_d8('b');
+    return this.LD_R_d8('b');
   }
 
   private RLCA() {
@@ -1375,6 +1388,8 @@ class Z80 {
     const result = (leftOne & ~1) | lastBit;
     this.#registers.a = result;
     this.carryFlag = lastBit === 1;
+
+    return 1 as const;
   }
 
   // ***** [1st 8 ops] [0x00 - 0x07] ends *****
