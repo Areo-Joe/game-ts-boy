@@ -632,6 +632,8 @@ class Z80 {
       target,
       source
     );
+
+    return 2 as const;
   }
 
   private ADD_RR_doubleByteR(
@@ -675,6 +677,8 @@ class Z80 {
       addrLowerByteRegister
     );
     this.#registers[targetRegister] = this.#memory.readByte(addr);
+
+    return 2 as const;
   }
 
   private DEC_RR(
@@ -687,6 +691,8 @@ class Z80 {
       lowerByteRegister,
       minusWithDoubleByte(val, 1)
     );
+
+    return 2 as const;
   }
 
   private DEC_doublyByteR(doubleByteRegister: Z80DoubleByteRegisters) {
@@ -1401,30 +1407,32 @@ class Z80 {
     const addrHB = this.readFromPcAndIncPc();
     const addr = this.joinTwoByte(addrHB, addrLB);
     this.#memory.writeDoubleByte(addr, this.#registers.sp);
+
+    return 5 as const;
   }
 
   private ADD_HL_BC() {
-    this.ADD_RR_RR('h', 'l', 'b', 'c');
+    return this.ADD_RR_RR('h', 'l', 'b', 'c');
   }
 
   private LD_A_BCa() {
-    this.LD_R_RRa('a', 'b', 'c');
+    return this.LD_R_RRa('a', 'b', 'c');
   }
 
   private DEC_BC() {
-    this.DEC_RR('b', 'c');
+    return this.DEC_RR('b', 'c');
   }
 
   private INC_C() {
-    this.INC_R('c');
+    return this.INC_R('c');
   }
 
   private DEC_C() {
-    this.DEC_R('c');
+    return this.DEC_R('c');
   }
 
   private LD_C_d8() {
-    this.LD_R_d8('c');
+    return this.LD_R_d8('c');
   }
 
   private RRCA() {
@@ -1432,6 +1440,8 @@ class Z80 {
     const firstBit = 1 & a;
     this.#registers.a = (0xff & (a >> 1) & ((1 << 7) - 1)) | (firstBit << 7);
     this.carryFlag = firstBit === 1;
+
+    return 1 as const;
   }
 
   // ***** [2nd 8 ops] [0x08 - 0x0f] ends  *****
