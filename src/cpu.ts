@@ -1451,30 +1451,32 @@ class Z80 {
   private Stop() {
     // todo: check usage
     this.pcInc();
+
+    return 1;
   }
 
   private LD_DE_d16() {
-    this.LD_RR_d16('d', 'e');
+    return this.LD_RR_d16('d', 'e');
   }
 
   private LD_DEa_A() {
-    this.LD_RRa_R('d', 'e', 'a');
+    return this.LD_RRa_R('d', 'e', 'a');
   }
 
   private INC_DE() {
-    this.INC_RR('d', 'e');
+    return this.INC_RR('d', 'e');
   }
 
   private INC_D() {
-    this.INC_R('d');
+    return this.INC_R('d');
   }
 
   private DEC_D() {
-    this.DEC_R('d');
+    return this.DEC_R('d');
   }
 
   private LD_D_d8() {
-    this.LD_R_d8('d');
+    return this.LD_R_d8('d');
   }
 
   private RLA() {
@@ -1484,6 +1486,8 @@ class Z80 {
     const result = (movedLeft & ~1) | (this.carryFlag ? 1 : 0);
     this.#registers.a = result;
     this.carryFlag = lastBit === 0 ? false : true;
+
+    return 1 as const;
   }
 
   // ***** [3rd 8 ops] [0x10 - 0x17] ends  *****
