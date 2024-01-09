@@ -1,3 +1,4 @@
+import { GPU } from './gpu';
 import { GBTimer } from './timer';
 import {
   BitLength,
@@ -19,10 +20,12 @@ import {
 class Z80 {
   #memory: MMU;
   #timer: GBTimer;
+  #gpu: GPU;
 
-  constructor(mmu: MMU, timer: GBTimer) {
+  constructor(mmu: MMU, timer: GBTimer, gpu: GPU) {
     this.#memory = mmu;
     this.#timer = timer;
+    this.#gpu = gpu;
   }
 
   #registers = {
@@ -378,6 +381,7 @@ class Z80 {
     while (true) {
       const opcode = this.readFromPcAndIncPc();
       this.#opMap[opcode]();
+      this.#gpu.step(this.#registers.t);
       this.#timer.inc(this.#registers.m);
       this.#registers.t = this.#registers.m = 0;
       this.#clock.t += this.#registers.t;
