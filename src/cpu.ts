@@ -669,6 +669,8 @@ class Z80 {
       target,
       source
     );
+
+    return 2 as const;
   }
 
   private LD_R_RRa(
@@ -699,9 +701,11 @@ class Z80 {
     return 2 as const;
   }
 
-  private DEC_doublyByteR(doubleByteRegister: Z80DoubleByteRegisters) {
+  private DEC_doubleByteR(doubleByteRegister: Z80DoubleByteRegisters) {
     const val = this.#registers[doubleByteRegister];
     this.#registers[doubleByteRegister] = minusWithDoubleByte(val, 1);
+
+    return 2 as const;
   }
 
   private INC_RRa(
@@ -1189,12 +1193,12 @@ class Z80 {
     higherByteRegister: Z80SingleByteRegisters,
     lowerByteRegister: Z80SingleByteRegisters
   ) {
-    this.DEC_doublyByteR('sp');
+    this.DEC_doubleByteR('sp');
     this.#memory.writeByte(
       this.#registers.sp,
       this.#registers[higherByteRegister]
     );
-    this.DEC_doublyByteR('sp');
+    this.DEC_doubleByteR('sp');
     this.#memory.writeByte(
       this.#registers.sp,
       this.#registers[lowerByteRegister]
@@ -1202,12 +1206,12 @@ class Z80 {
   }
 
   private PUSH_doubleByteR(doubleByteRegister: Z80DoubleByteRegisters) {
-    this.DEC_doublyByteR('sp');
+    this.DEC_doubleByteR('sp');
     this.#memory.writeByte(
       this.#registers.sp,
       higherByteOfDoubleByte(this.#registers[doubleByteRegister])
     );
-    this.DEC_doublyByteR('sp');
+    this.DEC_doubleByteR('sp');
     this.#memory.writeByte(
       this.#registers.sp,
       lowerByteOfDoubleByte(this.#registers[doubleByteRegister])
@@ -1570,7 +1574,7 @@ class Z80 {
   private LD_HLa_A_and_INC_HL() {
     this.LD_RRa_R('h', 'l', 'a');
     this.INC_RR('h', 'l');
-    
+
     return 2 as const;
   }
 
@@ -1711,42 +1715,48 @@ class Z80 {
   private JR_C_s8() {
     if (this.carryFlag) {
       // jump
-      this.JR_s8();
+      return this.JR_s8();
     } else {
       // no jump
       this.pcInc();
+
+      return 2 as const;
     }
   }
 
   private ADD_HL_SP() {
-    this.ADD_RR_doubleByteR('h', 'l', 'sp');
+    return this.ADD_RR_doubleByteR('h', 'l', 'sp');
   }
 
   private LD_A_HLa_and_DEC_HL() {
     this.LD_R_RRa('a', 'h', 'l');
     this.DEC_HL();
+
+    return 2 as const;
   }
 
   private DEC_SP() {
-    this.DEC_doublyByteR('sp');
+    return this.DEC_doubleByteR('sp');
   }
 
   private INC_A() {
-    this.INC_R('a');
+    return this.INC_R('a');
   }
 
   private DEC_A() {
-    this.DEC_R('a');
+    return this.DEC_R('a');
   }
 
   private LD_A_d8() {
-    this.LD_R_d8('a');
+    return this.LD_R_d8('a');
   }
 
   private CCF() {
     this.halfCarryFlag = !this.halfCarryFlag;
     this.substractionFlag = false;
     this.halfCarryFlag = false;
+
+    return 1 as const;
   }
 
   // ***** [8th 8 ops] [0x38 - 0x3f] ends  *****
@@ -2434,12 +2444,12 @@ class Z80 {
     const addrHigherByte = this.readFromPcAndIncPc();
     const callAddr = this.joinTwoByte(addrHigherByte, addrLowerByte);
 
-    this.DEC_doublyByteR('sp');
+    this.DEC_doubleByteR('sp');
     this.#memory.writeByte(
       this.#registers.sp,
       lowerByteOfDoubleByte(this.#registers.pc)
     );
-    this.DEC_doublyByteR('sp');
+    this.DEC_doubleByteR('sp');
     this.#memory.writeByte(
       this.#registers.sp,
       lowerByteOfDoubleByte(this.#registers.pc)
