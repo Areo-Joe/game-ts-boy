@@ -773,6 +773,8 @@ class Z80 {
     sourceRegister: Z80SingleByteRegisters
   ) {
     this.#registers[targetRegister] = this.#registers[sourceRegister];
+
+    return 1 as const;
   }
 
   private ADD_R_R(
@@ -1764,35 +1766,35 @@ class Z80 {
   // ***** [9th 8 ops] [0x40 - 0x47] starts  *****
 
   private LD_B_B() {
-    this.LD_R_R('b', 'b');
+    return this.LD_R_R('b', 'b');
   }
 
   private LD_B_C() {
-    this.LD_R_R('b', 'c');
+    return this.LD_R_R('b', 'c');
   }
 
   private LD_B_D() {
-    this.LD_R_R('b', 'd');
+    return this.LD_R_R('b', 'd');
   }
 
   private LD_B_E() {
-    this.LD_R_R('b', 'e');
+    return this.LD_R_R('b', 'e');
   }
 
   private LD_B_H() {
-    this.LD_R_R('b', 'h');
+    return this.LD_R_R('b', 'h');
   }
 
   private LD_B_L() {
-    this.LD_R_R('b', 'l');
+    return this.LD_R_R('b', 'l');
   }
 
   private LD_B_HLa() {
-    this.LD_R_RRa('b', 'h', 'l');
+    return this.LD_R_RRa('b', 'h', 'l');
   }
 
   private LD_B_A() {
-    this.LD_R_R('b', 'a');
+    return this.LD_R_R('b', 'a');
   }
 
   // ***** [9th 8 ops] [0x40 - 0x47] ends  *****
@@ -1800,35 +1802,35 @@ class Z80 {
   // ***** [10th 8 ops] [0x48 - 0x4f] starts  *****
 
   private LD_C_B() {
-    this.LD_R_R('c', 'b');
+    return this.LD_R_R('c', 'b');
   }
 
   private LD_C_C() {
-    this.LD_R_R('c', 'c');
+    return this.LD_R_R('c', 'c');
   }
 
   private LD_C_D() {
-    this.LD_R_R('c', 'd');
+    return this.LD_R_R('c', 'd');
   }
 
   private LD_C_E() {
-    this.LD_R_R('c', 'e');
+    return this.LD_R_R('c', 'e');
   }
 
   private LD_C_H() {
-    this.LD_R_R('c', 'h');
+    return this.LD_R_R('c', 'h');
   }
 
   private LD_C_L() {
-    this.LD_R_R('c', 'l');
+    return this.LD_R_R('c', 'l');
   }
 
   private LD_C_HLa() {
-    this.LD_R_RRa('c', 'h', 'l');
+    return this.LD_R_RRa('c', 'h', 'l');
   }
 
   private LD_C_A() {
-    this.LD_R_R('c', 'a');
+    return this.LD_R_R('c', 'a');
   }
 
   // ***** [10th 8 ops] [0x48 - 0x4f] ends  *****
@@ -1836,35 +1838,35 @@ class Z80 {
   // ***** [11th 8 ops] [0x50 - 0x57] starts  *****
 
   private LD_D_B() {
-    this.LD_R_R('d', 'b');
+    return this.LD_R_R('d', 'b');
   }
 
   private LD_D_C() {
-    this.LD_R_R('d', 'c');
+    return this.LD_R_R('d', 'c');
   }
 
   private LD_D_D() {
-    this.LD_R_R('d', 'd');
+    return this.LD_R_R('d', 'd');
   }
 
   private LD_D_E() {
-    this.LD_R_R('d', 'e');
+    return this.LD_R_R('d', 'e');
   }
 
   private LD_D_H() {
-    this.LD_R_R('d', 'h');
+    return this.LD_R_R('d', 'h');
   }
 
   private LD_D_L() {
-    this.LD_R_R('d', 'l');
+    return this.LD_R_R('d', 'l');
   }
 
   private LD_D_HLa() {
-    this.LD_R_RRa('d', 'h', 'l');
+    return this.LD_R_RRa('d', 'h', 'l');
   }
 
   private LD_D_A() {
-    this.LD_R_R('d', 'a');
+    return this.LD_R_R('d', 'a');
   }
 
   // ***** [11th 8 ops] [0x50 - 0x57] ends  *****
@@ -1872,35 +1874,35 @@ class Z80 {
   // ***** [12th 8 ops] [0x58 - 0x5f] starts  *****
 
   private LD_E_B() {
-    this.LD_R_R('e', 'b');
+    return this.LD_R_R('e', 'b');
   }
 
   private LD_E_C() {
-    this.LD_R_R('e', 'c');
+    return this.LD_R_R('e', 'c');
   }
 
   private LD_E_D() {
-    this.LD_R_R('e', 'd');
+    return this.LD_R_R('e', 'd');
   }
 
   private LD_E_E() {
-    this.LD_R_R('e', 'e');
+    return this.LD_R_R('e', 'e');
   }
 
   private LD_E_H() {
-    this.LD_R_R('e', 'h');
+    return this.LD_R_R('e', 'h');
   }
 
   private LD_E_L() {
-    this.LD_R_R('e', 'l');
+    return this.LD_R_R('e', 'l');
   }
 
   private LD_E_HLa() {
-    this.LD_R_RRa('e', 'h', 'l');
+    return this.LD_R_RRa('e', 'h', 'l');
   }
 
   private LD_E_A() {
-    this.LD_R_R('e', 'a');
+    return this.LD_R_R('e', 'a');
   }
 
   // ***** [12th 8 ops] [0x58 - 0x5f] ends  *****
