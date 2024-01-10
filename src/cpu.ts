@@ -1498,30 +1498,32 @@ class Z80 {
     const notParsed8Bit = this.readFromPcAndIncPc();
     const parsed = parseAsSigned(notParsed8Bit, BitLength.OneByte);
     this.#registers.pc = addWithDoubleByte(this.#registers.pc, parsed);
+
+    return 3 as const;
   }
 
   private ADD_HL_DE() {
-    this.ADD_RR_RR('h', 'l', 'd', 'e');
+    return this.ADD_RR_RR('h', 'l', 'd', 'e');
   }
 
   private LD_A_DEa() {
-    this.LD_R_RRa('a', 'd', 'e');
+    return this.LD_R_RRa('a', 'd', 'e');
   }
 
   private DEC_DE() {
-    this.DEC_RR('d', 'e');
+    return this.DEC_RR('d', 'e');
   }
 
   private INC_E() {
-    this.INC_R('e');
+    return this.INC_R('e');
   }
 
   private DEC_E() {
-    this.DEC_R('e');
+    return this.DEC_R('e');
   }
 
   private LD_E_d8() {
-    this.LD_R_d8('e');
+    return this.LD_R_d8('e');
   }
 
   private RRA() {
@@ -1532,6 +1534,8 @@ class Z80 {
       (movedRight & ((1 << 7) - 1)) | ((carryFlag ? 1 : 0) << 7);
     this.carryFlag = firstByte === 1 ? true : false;
     this.#registers.a = registerResult;
+
+    return 1 as const;
   }
 
   // ***** [4th 8 ops] [0x18 - 0x1f] ends  *****
