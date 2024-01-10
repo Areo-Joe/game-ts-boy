@@ -524,6 +524,8 @@ class Z80 {
       higherByte,
       lowerByte
     );
+
+    return 3 as const;
   }
 
   private LD_RRa_R(
@@ -559,6 +561,8 @@ class Z80 {
       this.#registers[doubleByteRegister],
       1
     );
+
+    return 2 as const;
   }
 
   private INC_R(register: Z80SingleByteRegisters) {
@@ -719,6 +723,8 @@ class Z80 {
       val,
       1
     );
+
+    return 3 as const;
   }
 
   private DEC_RRa(
@@ -740,6 +746,8 @@ class Z80 {
       val,
       1
     );
+
+    return 3 as const;
   }
 
   private LD_RRa_d8(
@@ -752,6 +760,8 @@ class Z80 {
     );
     const val = this.readFromPcAndIncPc();
     this.#memory.writeByte(addr, val);
+
+    return 3 as const;
   }
 
   private LD_R_R(
@@ -1600,42 +1610,48 @@ class Z80 {
   private JR_Z_s8() {
     if (this.zeroFlag) {
       // jump
-      this.JR_s8();
+      return this.JR_s8();
     } else {
       // no jump
       this.pcInc();
+
+      return 2 as const;
     }
   }
 
   private ADD_HL_HL() {
-    this.ADD_RR_RR('h', 'l', 'h', 'l');
+    return this.ADD_RR_RR('h', 'l', 'h', 'l');
   }
 
   private LD_A_HLa_and_INC_HL() {
     this.LD_R_RRa('a', 'h', 'l');
     this.INC_RR('h', 'l');
+
+    return 2 as const;
   }
 
   private DEC_HL() {
-    this.DEC_RR('h', 'l');
+    return this.DEC_RR('h', 'l');
   }
 
   private INC_L() {
-    this.INC_R('l');
+    return this.INC_R('l');
   }
 
   private DEC_L() {
-    this.DEC_R('l');
+    return this.DEC_R('l');
   }
 
   private LD_L_d8() {
-    this.LD_R_d8('l');
+    return this.LD_R_d8('l');
   }
 
   private CPL() {
     this.#registers.a = ~this.#registers.a & 0xff;
     this.substractionFlag = true;
     this.halfCarryFlag = true;
+
+    return 1 as const;
   }
 
   // ***** [6th 8 ops] [0x28 - 0x2f] ends  *****
@@ -1646,40 +1662,46 @@ class Z80 {
     if (this.carryFlag) {
       // no jump
       this.pcInc();
+
+      return 2 as const;
     } else {
-      this.JR_s8();
+      return this.JR_s8();
     }
   }
 
   private LD_SP_d16() {
-    this.LD_doubleByteR_d16('sp');
+    return this.LD_doubleByteR_d16('sp');
   }
 
   private LD_HLa_A_and_DEC_HL() {
     this.LD_RRa_R('h', 'l', 'a');
     this.DEC_HL();
+
+    return 2 as const;
   }
 
   private INC_SP() {
-    this.INC_doubleByteR('sp');
+    return this.INC_doubleByteR('sp');
   }
 
   private INC_HLa() {
-    this.INC_RRa('h', 'l');
+    return this.INC_RRa('h', 'l');
   }
 
   private DEC_HLa() {
-    this.DEC_RR('h', 'l');
+    return this.DEC_RRa('h', 'l');
   }
 
   private LD_HLa_d8() {
-    this.LD_RRa_d8('h', 'l');
+    return this.LD_RRa_d8('h', 'l');
   }
 
   private SCF() {
     this.substractionFlag = false;
     this.halfCarryFlag = false;
     this.carryFlag = true;
+
+    return 1 as const;
   }
 
   // ***** [7th 8 ops] [0x30 - 0x37] ends  *****
