@@ -1546,35 +1546,38 @@ class Z80 {
     if (this.zeroFlag) {
       // no jump
       this.pcInc();
+      return 2 as const;
     } else {
       // jump
-      this.JR_s8();
+      return this.JR_s8();
     }
   }
 
   private LD_HL_d16() {
-    this.LD_RR_d16('h', 'l');
+    return this.LD_RR_d16('h', 'l');
   }
 
   private LD_HLa_A_and_INC_HL() {
     this.LD_RRa_R('h', 'l', 'a');
     this.INC_RR('h', 'l');
+    
+    return 2 as const;
   }
 
   private INC_HL() {
-    this.INC_RR('h', 'l');
+    return this.INC_RR('h', 'l');
   }
 
   private INC_H() {
-    this.INC_R('h');
+    return this.INC_R('h');
   }
 
   private DEC_H() {
-    this.DEC_R('h');
+    return this.DEC_R('h');
   }
 
   private LD_H_d8() {
-    this.LD_R_d8('h');
+    return this.LD_R_d8('h');
   }
 
   private DAA() {
@@ -1586,6 +1589,8 @@ class Z80 {
       this.carryFlag = true;
     }
     this.#registers.a = a;
+
+    return 1 as const;
   }
 
   // ***** [5th 8 ops] [0x20 - 0x27] ends  *****
