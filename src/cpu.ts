@@ -801,6 +801,8 @@ class Z80 {
       target,
       source
     );
+
+    return 1 as const;
   }
 
   private ADD_R_RRa(
@@ -831,6 +833,8 @@ class Z80 {
       target,
       source
     );
+
+    return 2 as const;
   }
 
   private ADC_R_R(
@@ -859,6 +863,8 @@ class Z80 {
       source,
       this.carryFlag ? 1 : 0
     );
+
+    return 1 as const;
   }
 
   private ADC_R_RRa(
@@ -893,6 +899,8 @@ class Z80 {
       source,
       this.carryFlag ? 1 : 0
     );
+
+    return 2 as const;
   }
 
   private SUB_R_R(
@@ -1910,35 +1918,35 @@ class Z80 {
   // ***** [13th 8 ops] [0x60 - 0x67] starts  *****
 
   private LD_H_B() {
-    this.LD_R_R('h', 'b');
+    return this.LD_R_R('h', 'b');
   }
 
   private LD_H_C() {
-    this.LD_R_R('h', 'c');
+    return this.LD_R_R('h', 'c');
   }
 
   private LD_H_D() {
-    this.LD_R_R('h', 'd');
+    return this.LD_R_R('h', 'd');
   }
 
   private LD_H_E() {
-    this.LD_R_R('h', 'e');
+    return this.LD_R_R('h', 'e');
   }
 
   private LD_H_H() {
-    this.LD_R_R('h', 'h');
+    return this.LD_R_R('h', 'h');
   }
 
   private LD_H_L() {
-    this.LD_R_R('h', 'l');
+    return this.LD_R_R('h', 'l');
   }
 
   private LD_H_HLa() {
-    this.LD_R_RRa('h', 'h', 'l');
+    return this.LD_R_RRa('h', 'h', 'l');
   }
 
   private LD_H_A() {
-    this.LD_R_R('h', 'a');
+    return this.LD_R_R('h', 'a');
   }
 
   // ***** [13th 8 ops] [0x69 - 0x67] ends  *****
@@ -1946,35 +1954,35 @@ class Z80 {
   // ***** [14th 8 ops] [0x68 - 0x6f] starts  *****
 
   private LD_L_B() {
-    this.LD_R_R('l', 'b');
+    return this.LD_R_R('l', 'b');
   }
 
   private LD_L_C() {
-    this.LD_R_R('l', 'c');
+    return this.LD_R_R('l', 'c');
   }
 
   private LD_L_D() {
-    this.LD_R_R('l', 'd');
+    return this.LD_R_R('l', 'd');
   }
 
   private LD_L_E() {
-    this.LD_R_R('l', 'e');
+    return this.LD_R_R('l', 'e');
   }
 
   private LD_L_H() {
-    this.LD_R_R('l', 'h');
+    return this.LD_R_R('l', 'h');
   }
 
   private LD_L_L() {
-    this.LD_R_R('l', 'l');
+    return this.LD_R_R('l', 'l');
   }
 
   private LD_L_HLa() {
-    this.LD_R_RRa('l', 'h', 'l');
+    return this.LD_R_RRa('l', 'h', 'l');
   }
 
   private LD_L_A() {
-    this.LD_R_R('l', 'a');
+    return this.LD_R_R('l', 'a');
   }
 
   // ***** [14th 8 ops] [0x68 - 0x6f] ends  *****
@@ -1982,27 +1990,27 @@ class Z80 {
   // ***** [15th 8 ops] [0x70 - 0x77] starts  *****
 
   private LD_HLa_B() {
-    this.LD_RRa_R('h', 'l', 'b');
+    return this.LD_RRa_R('h', 'l', 'b');
   }
 
   private LD_HLa_C() {
-    this.LD_RRa_R('h', 'l', 'c');
+    return this.LD_RRa_R('h', 'l', 'c');
   }
 
   private LD_HLa_D() {
-    this.LD_RRa_R('h', 'l', 'd');
+    return this.LD_RRa_R('h', 'l', 'd');
   }
 
   private LD_HLa_E() {
-    this.LD_RRa_R('h', 'l', 'e');
+    return this.LD_RRa_R('h', 'l', 'e');
   }
 
   private LD_HLa_H() {
-    this.LD_RRa_R('h', 'l', 'h');
+    return this.LD_RRa_R('h', 'l', 'h');
   }
 
   private LD_HLa_L() {
-    this.LD_RRa_R('h', 'l', 'l');
+    return this.LD_RRa_R('h', 'l', 'l');
   }
 
   private HALT() {
@@ -2010,7 +2018,7 @@ class Z80 {
   }
 
   private LD_HLa_A() {
-    this.LD_RRa_R('h', 'l', 'a');
+    return this.LD_RRa_R('h', 'l', 'a');
   }
 
   // ***** [15th 8 ops] [0x70 - 0x77] ends  *****
@@ -2018,35 +2026,35 @@ class Z80 {
   // ***** [16th 8 ops] [0x78 - 0x7f] starts  *****
 
   private LD_A_B() {
-    this.LD_R_R('a', 'b');
+    return this.LD_R_R('a', 'b');
   }
 
   private LD_A_C() {
-    this.LD_R_R('a', 'c');
+    return this.LD_R_R('a', 'c');
   }
 
   private LD_A_D() {
-    this.LD_R_R('a', 'd');
+    return this.LD_R_R('a', 'd');
   }
 
   private LD_A_E() {
-    this.LD_R_R('a', 'e');
+    return this.LD_R_R('a', 'e');
   }
 
   private LD_A_H() {
-    this.LD_R_R('a', 'h');
+    return this.LD_R_R('a', 'h');
   }
 
   private LD_A_L() {
-    this.LD_R_R('a', 'l');
+    return this.LD_R_R('a', 'l');
   }
 
   private LD_A_HLa() {
-    this.LD_R_RRa('a', 'h', 'l');
+    return this.LD_R_RRa('a', 'h', 'l');
   }
 
   private LD_A_A() {
-    this.LD_R_R('a', 'a');
+    return this.LD_R_R('a', 'a');
   }
 
   // ***** [16th 8 ops] [0x78 - 0x7f] ends  *****
@@ -2054,35 +2062,35 @@ class Z80 {
   // ***** [17th 8 ops] [0x80 - 0x87] starts  *****
 
   private ADD_A_B() {
-    this.ADD_R_R('a', 'b');
+    return this.ADD_R_R('a', 'b');
   }
 
   private ADD_A_C() {
-    this.ADD_R_R('a', 'c');
+    return this.ADD_R_R('a', 'c');
   }
 
   private ADD_A_D() {
-    this.ADD_R_R('a', 'd');
+    return this.ADD_R_R('a', 'd');
   }
 
   private ADD_A_E() {
-    this.ADD_R_R('a', 'e');
+    return this.ADD_R_R('a', 'e');
   }
 
   private ADD_A_H() {
-    this.ADD_R_R('a', 'h');
+    return this.ADD_R_R('a', 'h');
   }
 
   private ADD_A_L() {
-    this.ADD_R_R('a', 'l');
+    return this.ADD_R_R('a', 'l');
   }
 
   private ADD_A_HLa() {
-    this.ADD_R_RRa('a', 'h', 'l');
+    return this.ADD_R_RRa('a', 'h', 'l');
   }
 
   private ADD_A_A() {
-    this.ADD_R_R('a', 'a');
+    return this.ADD_R_R('a', 'a');
   }
 
   // ***** [17th 8 ops] [0x80 - 0x87] ends  *****
@@ -2090,35 +2098,35 @@ class Z80 {
   // ***** [18th 8 ops] [0x88 - 0x8f] starts  *****
 
   private ADC_A_B() {
-    this.ADC_R_R('a', 'b');
+    return this.ADC_R_R('a', 'b');
   }
 
   private ADC_A_C() {
-    this.ADC_R_R('a', 'c');
+    return this.ADC_R_R('a', 'c');
   }
 
   private ADC_A_D() {
-    this.ADC_R_R('a', 'd');
+    return this.ADC_R_R('a', 'd');
   }
 
   private ADC_A_E() {
-    this.ADC_R_R('a', 'e');
+    return this.ADC_R_R('a', 'e');
   }
 
   private ADC_A_H() {
-    this.ADC_R_R('a', 'h');
+    return this.ADC_R_R('a', 'h');
   }
 
   private ADC_A_L() {
-    this.ADC_R_R('a', 'l');
+    return this.ADC_R_R('a', 'l');
   }
 
   private ADC_A_HLa() {
-    this.ADC_R_RRa('a', 'h', 'l');
+    return this.ADC_R_RRa('a', 'h', 'l');
   }
 
   private ADC_A_A() {
-    this.ADC_R_R('a', 'a');
+    return this.ADC_R_R('a', 'a');
   }
 
   // ***** [18th 8 ops] [0x88 - 0x8f] ends  *****
