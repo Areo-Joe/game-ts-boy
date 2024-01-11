@@ -927,6 +927,8 @@ class Z80 {
       target,
       source
     );
+
+    return 1 as const;
   }
 
   private SUB_R_RRa(
@@ -957,6 +959,8 @@ class Z80 {
       target,
       source
     );
+
+    return 2 as const;
   }
 
   private SBC_R_R(
@@ -985,6 +989,8 @@ class Z80 {
       source,
       this.carryFlag ? 1 : 0
     );
+
+    return 1 as const;
   }
 
   private SBC_R_RRa(
@@ -1019,6 +1025,8 @@ class Z80 {
       source,
       this.carryFlag ? 1 : 0
     );
+
+    return 2 as const;
   }
 
   private AND_R_R(
@@ -2134,35 +2142,35 @@ class Z80 {
   // ***** [19th 8 ops] [0x90 - 0x97] starts  *****
 
   private SUB_A_B() {
-    this.SUB_R_R('a', 'b');
+    return this.SUB_R_R('a', 'b');
   }
 
   private SUB_A_C() {
-    this.SUB_R_R('a', 'c');
+    return this.SUB_R_R('a', 'c');
   }
 
   private SUB_A_D() {
-    this.SUB_R_R('a', 'd');
+    return this.SUB_R_R('a', 'd');
   }
 
   private SUB_A_E() {
-    this.SUB_R_R('a', 'e');
+    return this.SUB_R_R('a', 'e');
   }
 
   private SUB_A_H() {
-    this.SUB_R_R('a', 'h');
+    return this.SUB_R_R('a', 'h');
   }
 
   private SUB_A_L() {
-    this.SUB_R_R('a', 'l');
+    return this.SUB_R_R('a', 'l');
   }
 
   private SUB_A_HLa() {
-    this.SUB_R_RRa('a', 'h', 'l');
+    return this.SUB_R_RRa('a', 'h', 'l');
   }
 
   private SUB_A_A() {
-    this.SUB_R_R('a', 'a');
+    return this.SUB_R_R('a', 'a');
   }
 
   // ***** [19th 8 ops] [0x90 - 0x97] ends  *****
@@ -2170,35 +2178,35 @@ class Z80 {
   // ***** [20th 8 ops] [0x98 - 0x9f] starts  *****
 
   private SBC_A_B() {
-    this.SBC_R_R('a', 'b');
+    return this.SBC_R_R('a', 'b');
   }
 
   private SBC_A_C() {
-    this.SBC_R_R('a', 'c');
+    return this.SBC_R_R('a', 'c');
   }
 
   private SBC_A_D() {
-    this.SBC_R_R('a', 'd');
+    return this.SBC_R_R('a', 'd');
   }
 
   private SBC_A_E() {
-    this.SBC_R_R('a', 'e');
+    return this.SBC_R_R('a', 'e');
   }
 
   private SBC_A_H() {
-    this.SBC_R_R('a', 'h');
+    return this.SBC_R_R('a', 'h');
   }
 
   private SBC_A_L() {
-    this.SBC_R_R('a', 'l');
+    return this.SBC_R_R('a', 'l');
   }
 
   private SBC_A_HLa() {
-    this.SBC_R_RRa('a', 'h', 'l');
+    return this.SBC_R_RRa('a', 'h', 'l');
   }
 
   private SBC_A_A() {
-    this.SBC_R_R('a', 'a');
+    return this.SBC_R_R('a', 'a');
   }
 
   // ***** [20th 8 ops] [0x98 - 0x9f] ends  *****
