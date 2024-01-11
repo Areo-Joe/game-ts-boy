@@ -1043,6 +1043,8 @@ class Z80 {
     this.substractionFlag = false;
     this.halfCarryFlag = true;
     this.carryFlag = false;
+
+    return 1 as const;
   }
 
   private AND_R_RRa(
@@ -1065,6 +1067,8 @@ class Z80 {
     this.substractionFlag = false;
     this.halfCarryFlag = true;
     this.carryFlag = false;
+
+    return 2 as const;
   }
 
   private XOR_R_R(
@@ -1081,6 +1085,8 @@ class Z80 {
     this.substractionFlag = false;
     this.halfCarryFlag = false;
     this.carryFlag = false;
+
+    return 1 as const;
   }
 
   private XOR_R_RRa(
@@ -1103,6 +1109,8 @@ class Z80 {
     this.substractionFlag = false;
     this.halfCarryFlag = false;
     this.carryFlag = false;
+
+    return 2 as const;
   }
 
   private OR_R_R(
@@ -1119,6 +1127,8 @@ class Z80 {
     this.substractionFlag = false;
     this.halfCarryFlag = false;
     this.carryFlag = false;
+
+    return 1 as const;
   }
 
   private OR_R_RRa(
@@ -1141,6 +1151,8 @@ class Z80 {
     this.substractionFlag = false;
     this.halfCarryFlag = false;
     this.carryFlag = false;
+
+    return 2 as const;
   }
 
   private CP_R_R(
@@ -1166,6 +1178,8 @@ class Z80 {
       target,
       source
     );
+    
+    return 1 as const;
   }
 
   private CP_R_RRa(
@@ -1197,6 +1211,8 @@ class Z80 {
       target,
       source
     );
+
+    return 2 as const;
   }
 
   private POP_RR(
@@ -2214,35 +2230,35 @@ class Z80 {
   // ***** [21st 8 ops] [0xa0 - 0xa7] starts  *****
 
   private AND_A_B() {
-    this.AND_R_R('a', 'b');
+    return this.AND_R_R('a', 'b');
   }
 
   private AND_A_C() {
-    this.AND_R_R('a', 'c');
+    return this.AND_R_R('a', 'c');
   }
 
   private AND_A_D() {
-    this.AND_R_R('a', 'd');
+    return this.AND_R_R('a', 'd');
   }
 
   private AND_A_E() {
-    this.AND_R_R('a', 'e');
+    return this.AND_R_R('a', 'e');
   }
 
   private AND_A_H() {
-    this.AND_R_R('a', 'h');
+    return this.AND_R_R('a', 'h');
   }
 
   private AND_A_L() {
-    this.AND_R_R('a', 'l');
+    return this.AND_R_R('a', 'l');
   }
 
   private AND_A_HLa() {
-    this.AND_R_RRa('a', 'h', 'l');
+    return this.AND_R_RRa('a', 'h', 'l');
   }
 
   private AND_A_A() {
-    this.AND_R_R('a', 'a');
+    return this.AND_R_R('a', 'a');
   }
 
   // ***** [21st 8 ops] [0xa0 - 0xa7] ends  *****
@@ -2250,35 +2266,35 @@ class Z80 {
   // ***** [22nd 8 ops] [0xa8 - 0xaf] starts  *****
 
   private XOR_A_B() {
-    this.XOR_R_R('a', 'b');
+    return this.XOR_R_R('a', 'b');
   }
 
   private XOR_A_C() {
-    this.XOR_R_R('a', 'c');
+    return this.XOR_R_R('a', 'c');
   }
 
   private XOR_A_D() {
-    this.XOR_R_R('a', 'd');
+    return this.XOR_R_R('a', 'd');
   }
 
   private XOR_A_E() {
-    this.XOR_R_R('a', 'e');
+    return this.XOR_R_R('a', 'e');
   }
 
   private XOR_A_H() {
-    this.XOR_R_R('a', 'h');
+    return this.XOR_R_R('a', 'h');
   }
 
   private XOR_A_L() {
-    this.XOR_R_R('a', 'l');
+    return this.XOR_R_R('a', 'l');
   }
 
   private XOR_A_HLa() {
-    this.XOR_R_RRa('a', 'h', 'l');
+    return this.XOR_R_RRa('a', 'h', 'l');
   }
 
   private XOR_A_A() {
-    this.XOR_R_R('a', 'a');
+    return this.XOR_R_R('a', 'a');
   }
 
   // ***** [22nd 8 ops] [0xa8 - 0xaf] ends  *****
@@ -2286,35 +2302,35 @@ class Z80 {
   // ***** [23rd 8 ops] [0xb0 - 0xb7] starts  *****
 
   private OR_A_B() {
-    this.OR_R_R('a', 'b');
+    return this.OR_R_R('a', 'b');
   }
 
   private OR_A_C() {
-    this.OR_R_R('a', 'c');
+    return this.OR_R_R('a', 'c');
   }
 
   private OR_A_D() {
-    this.OR_R_R('a', 'd');
+    return this.OR_R_R('a', 'd');
   }
 
   private OR_A_E() {
-    this.OR_R_R('a', 'e');
+    return this.OR_R_R('a', 'e');
   }
 
   private OR_A_H() {
-    this.OR_R_R('a', 'h');
+    return this.OR_R_R('a', 'h');
   }
 
   private OR_A_L() {
-    this.OR_R_R('a', 'l');
+    return this.OR_R_R('a', 'l');
   }
 
   private OR_A_HLa() {
-    this.OR_R_RRa('a', 'h', 'l');
+    return this.OR_R_RRa('a', 'h', 'l');
   }
 
   private OR_A_A() {
-    this.OR_R_R('a', 'a');
+    return this.OR_R_R('a', 'a');
   }
 
   // ***** [23rd 8 ops] [0xb0 - 0xb7] ends  *****
@@ -2322,35 +2338,35 @@ class Z80 {
   // ***** [24th 8 ops] [0xb8 - 0xbf] starts  *****
 
   private CP_A_B() {
-    this.CP_R_R('a', 'b');
+    return this.CP_R_R('a', 'b');
   }
 
   private CP_A_C() {
-    this.CP_R_R('a', 'c');
+    return this.CP_R_R('a', 'c');
   }
 
   private CP_A_D() {
-    this.CP_R_R('a', 'd');
+    return this.CP_R_R('a', 'd');
   }
 
   private CP_A_E() {
-    this.CP_R_R('a', 'e');
+    return this.CP_R_R('a', 'e');
   }
 
   private CP_A_H() {
-    this.CP_R_R('a', 'h');
+    return this.CP_R_R('a', 'h');
   }
 
   private CP_A_L() {
-    this.CP_R_R('a', 'l');
+    return this.CP_R_R('a', 'l');
   }
 
   private CP_A_HLa() {
-    this.CP_R_RRa('a', 'h', 'l');
+    return this.CP_R_RRa('a', 'h', 'l');
   }
 
   private CP_A_A() {
-    this.CP_R_R('a', 'a');
+    return this.CP_R_R('a', 'a');
   }
 
   // ***** [24th 8 ops] [0xb8 - 0xbf] ends  *****
