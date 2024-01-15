@@ -1352,6 +1352,8 @@ class Z80 {
       val,
       this.carryFlag ? 1 : 0
     );
+
+    return 2 as const;
   }
 
   private RST_n(n: number) {
@@ -2599,24 +2601,30 @@ class Z80 {
     if (this.carryFlag) {
       // ret
       this.RET();
+
+      return 5 as const;
     } else {
       // no ret
+
+      return 2 as const;
     }
   }
 
   private RETI() {
-    this.RET();
-    this.signal_io_device();
+    this.EI();
+    return this.RET();
   }
 
   private JP_C_d16a() {
     if (this.carryFlag) {
       // jump
-      this.JP_d16a();
+      return this.JP_d16a();
     } else {
       // no jump
       this.pcInc();
       this.pcInc();
+
+      return 3 as const;
     }
   }
 
@@ -2627,20 +2635,22 @@ class Z80 {
       // no call
       this.pcInc();
       this.pcInc();
+
+      return 3 as const;
     } else {
       // call
-      this.CALL_d16a();
+      return this.CALL_d16a();
     }
   }
 
   // empty opcode
 
   private SBC_A_d8() {
-    this.SBC_R_d8('a');
+    return this.SBC_R_d8('a');
   }
 
   private RST_3() {
-    this.RST_n(3);
+    return this.RST_n(3);
   }
 
   // ***** [28th 8 ops] [0xd8 - 0xdf] ends  *****
