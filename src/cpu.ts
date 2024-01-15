@@ -1375,6 +1375,8 @@ class Z80 {
     const d8 = this.readFromPcAndIncPc();
     const addr = addWithDoubleByte(0xff00, d8);
     this.#memory.writeByte(addr, this.#registers[sourceRegister]);
+
+    return 3 as const;
   }
 
   private LD_Ra_R(
@@ -1384,6 +1386,8 @@ class Z80 {
     const halfAddr = this.#registers[targetRegister];
     const addr = addWithDoubleByte(0xff00, halfAddr);
     this.#memory.writeByte(addr, this.#registers[sourceRegister]);
+
+    return 2 as const;
   }
 
   private LD_d16a_R(sourceRegister: Z80SingleByteRegisters) {
@@ -2658,15 +2662,15 @@ class Z80 {
   // ***** [29th 8 ops] [0xe0 - 0xe7] starts  *****
 
   private LD_d8a_A() {
-    this.LD_d8a_R('a');
+    return this.LD_d8a_R('a');
   }
 
   private POP_HL() {
-    this.POP_RR('h', 'l');
+    return this.POP_RR('h', 'l');
   }
 
   private LD_Ca_A() {
-    this.LD_Ra_R('c', 'a');
+    return this.LD_Ra_R('c', 'a');
   }
 
   // empty opcode
@@ -2674,7 +2678,7 @@ class Z80 {
   // empty opcode
 
   private PUSH_HL() {
-    this.PUSH_RR('h', 'l');
+    return this.PUSH_RR('h', 'l');
   }
 
   private AND_d8() {
@@ -2688,10 +2692,12 @@ class Z80 {
     this.substractionFlag = false;
     this.halfCarryFlag = true;
     this.carryFlag = false;
+
+    return 2 as const;
   }
 
   private RST_4() {
-    this.RST_n(4);
+    return this.RST_n(4);
   }
 
   // ***** [29th 8 ops] [0xe0 - 0xe7] ends  *****
