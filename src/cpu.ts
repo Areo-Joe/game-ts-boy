@@ -1221,6 +1221,8 @@ class Z80 {
   ) {
     this.#registers[lowerByteRegister] = this.readFromSpAndIncSp();
     this.#registers[higherByteRegister] = this.readFromSpAndIncSp();
+
+    return 3 as const;
   }
 
   private PUSH_RR(
@@ -1237,6 +1239,8 @@ class Z80 {
       this.#registers.sp,
       this.#registers[lowerByteRegister]
     );
+
+    return 4 as const;
   }
 
   private PUSH_doubleByteR(doubleByteRegister: Z80DoubleByteRegisters) {
@@ -1272,6 +1276,8 @@ class Z80 {
       registerVal,
       val
     );
+
+    return 2 as const;
   }
 
   private ADC_R_d8(targetRegister: Z80SingleByteRegisters) {
@@ -1346,7 +1352,9 @@ class Z80 {
 
   private RST_n(n: number) {
     this.PUSH_doubleByteR('pc');
-    this.#registers.pc = 0x0080 * n;
+    this.#registers.pc = 0x0008 * n;
+
+    return 4 as const;
   }
 
   private EMPTY_OPCODE() {
@@ -2376,14 +2384,16 @@ class Z80 {
   private RET_NZ() {
     if (this.zeroFlag) {
       // not return
+      return 2 as const;
     } else {
       // return
       this.RET();
+      return 5 as const;
     }
   }
 
   private POP_BC() {
-    this.POP_RR('b', 'c');
+    return this.POP_RR('b', 'c');
   }
 
   private JP_NZ_d16a() {
@@ -2391,9 +2401,10 @@ class Z80 {
       // no jump
       this.pcInc();
       this.pcInc();
+      return 3 as const;
     } else {
       // jump
-      this.RET();
+      return this.JP_d16a();
     }
   }
 
@@ -2403,6 +2414,7 @@ class Z80 {
     const addr = this.joinTwoByte(addrHigherByte, addrLowerByte);
 
     this.#registers.pc = addr;
+    return 4 as const;
   }
 
   private CALL_NZ_d16a() {
@@ -2410,22 +2422,24 @@ class Z80 {
       // no call
       this.pcInc();
       this.pcInc();
+
+      return 3 as const;
     } else {
       // call
-      this.CALL_d16a();
+      return this.CALL_d16a();
     }
   }
 
   private PUSH_BC() {
-    this.PUSH_RR('b', 'c');
+    return this.PUSH_RR('b', 'c');
   }
 
   private ADD_A_d8() {
-    this.ADD_R_d8('a');
+    return this.ADD_R_d8('a');
   }
 
   private RST_0() {
-    this.RST_n(0);
+    return this.RST_n(0);
   }
 
   // ***** [25th 8 ops] [0xc0 - 0xc7] ends  *****
@@ -2445,6 +2459,8 @@ class Z80 {
     const lowerByte = this.readFromSpAndIncSp();
     const higherByte = this.readFromSpAndIncSp();
     this.#registers.pc = this.joinTwoByte(higherByte, lowerByte);
+
+    return 4 as const;
   }
 
   private JP_Z_d16a() {
@@ -2490,6 +2506,8 @@ class Z80 {
     );
 
     this.#registers.pc = callAddr;
+
+    return 6 as const;
   }
 
   private ADC_A_d8() {
