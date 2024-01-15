@@ -1326,6 +1326,8 @@ class Z80 {
       registerVal,
       val
     );
+
+    return 2 as const;
   }
 
   private SBC_R_d8(targetRegister: Z80SingleByteRegisters) {
@@ -2535,14 +2537,18 @@ class Z80 {
   private RET_NC() {
     if (this.carryFlag) {
       // no return
+
+      return 2 as const;
     } else {
       // return
       this.RET();
+
+      return 5 as const;
     }
   }
 
   private POP_DE() {
-    this.POP_RR('d', 'e');
+    return this.POP_RR('d', 'e');
   }
 
   private JP_NC_d16a() {
@@ -2550,9 +2556,11 @@ class Z80 {
       // no jump
       this.pcInc();
       this.pcInc();
+
+      return 3 as const;
     } else {
       // jump
-      this.JP_d16a();
+      return this.JP_d16a();
     }
   }
 
@@ -2563,22 +2571,24 @@ class Z80 {
       // no call
       this.pcInc();
       this.pcInc();
+
+      return 3 as const;
     } else {
       // call
-      this.CALL_d16a();
+      return this.CALL_d16a();
     }
   }
 
   private PUSH_DE() {
-    this.PUSH_RR('d', 'e');
+    return this.PUSH_RR('d', 'e');
   }
 
   private SUB_A_d8() {
-    this.SUB_R_d8('a');
+    return this.SUB_R_d8('a');
   }
 
   private RST_2() {
-    this.RST_n(2);
+    return this.RST_n(2);
   }
 
   // ***** [27th 8 ops] [0xd0 - 0xd7] ends  *****
