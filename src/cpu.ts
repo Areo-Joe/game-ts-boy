@@ -28,6 +28,8 @@ class Z80 {
     this.#gpu = gpu;
   }
 
+  #IME = false; // controls the overall interrupt's availablility
+
   #registers = {
     // for computation
     a: 0,
@@ -1178,7 +1180,7 @@ class Z80 {
       target,
       source
     );
-    
+
     return 1 as const;
   }
 
@@ -1404,6 +1406,8 @@ class Z80 {
     const addr = addWithDoubleByte(0xff00, halfAddr);
     const val = this.#memory.readByte(addr);
     this.#registers[targetRegister] = val;
+
+    return 3 as const;
   }
 
   private LD_R_Ra(
@@ -1414,6 +1418,8 @@ class Z80 {
     const sourceAddr = addWithDoubleByte(0xff00, sourceHalfAddr);
     const val = this.#memory.readByte(sourceAddr);
     this.#registers[targetRegister] = val;
+
+    return 2 as const;
   }
 
   private LD_R_d16a(targetRegister: Z80SingleByteRegisters) {
@@ -2771,25 +2777,27 @@ class Z80 {
   // ***** [31st 8 ops] [0xf0 - 0xf7] starts  *****
 
   private LD_A_d8a() {
-    this.LD_R_d8a('a');
+    return this.LD_R_d8a('a');
   }
 
   private POP_AF() {
-    this.POP_RR('a', 'f');
+    return this.POP_RR('a', 'f');
   }
 
   private LD_A_Ca() {
-    this.LD_R_Ra('a', 'c');
+    return this.LD_R_Ra('a', 'c');
   }
 
   private DI() {
-    throw new Error('unimplemented!');
+    this.#IME = false;
+
+    return 1 as const;
   }
 
   // empty op
 
   private PUSH_AF() {
-    this.PUSH_RR('a', 'f');
+    return this.PUSH_RR('a', 'f');
   }
 
   private OR_d8() {
@@ -2801,10 +2809,12 @@ class Z80 {
     this.carryFlag = false;
 
     this.#registers.a = result;
+
+    return 2 as const;
   }
 
   private RST_6() {
-    this.RST_n(6);
+    return this.RST_n(6);
   }
 
   // ***** [31st 8 ops] [0xf0 - 0xf7] ends  *****
