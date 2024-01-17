@@ -1428,6 +1428,8 @@ class Z80 {
     const addr = this.joinTwoByte(addrH, addrL);
     const val = this.#memory.readByte(addr);
     this.#registers[targetRegister] = val;
+
+    return 4 as const;
   }
 
   // ***** General Ops ends *****
@@ -2843,19 +2845,25 @@ class Z80 {
       originSp,
       parsed
     );
+
+    return 3 as const;
   }
 
   private LD_SP_HL() {
     const result = this.joinRegisterPair('h', 'l');
     this.#registers.sp = result;
+
+    return 2 as const;
   }
 
   private LD_A_d16a() {
-    this.LD_R_d16a('a');
+    return this.LD_R_d16a('a');
   }
 
   private EI() {
-    throw new Error('unimplemented');
+    this.#IME = true;
+
+    return 1 as const;
   }
 
   // empty op
@@ -2881,10 +2889,12 @@ class Z80 {
       a,
       d8
     );
+
+    return 2 as const;
   }
 
   private RST_7() {
-    this.RST_n(7);
+    return this.RST_n(7);
   }
 
   // ***** [32nd 8 ops] [0xf8 - 0xff] ends  *****
