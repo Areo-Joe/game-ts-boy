@@ -14,6 +14,8 @@ import {
   andWithOneByte,
   parseAsSigned,
   assertEven,
+  getLastBit,
+  getFirstBit,
 } from './utils';
 
 // GB's cpu is a modified Z80, so...
@@ -409,6 +411,26 @@ class Z80 {
     this.RL_L,
     this.RL_HLa,
     this.RL_A,
+
+    // 4th
+    this.RR_B,
+    this.RR_C,
+    this.RR_D,
+    this.RR_E,
+    this.RR_H,
+    this.RR_L,
+    this.RR_HLa,
+    this.RR_A,
+
+    // 5th
+    this.SLA_B,
+    this.SLA_C,
+    this.SLA_D,
+    this.SLA_E,
+    this.SLA_H,
+    this.SLA_L,
+    this.SLA_HLa,
+    this.SLA_A,
   ];
 
   run() {
@@ -1466,8 +1488,8 @@ class Z80 {
 
   private RLC_R(register: Z80SingleByteRegisters) {
     const val = this.#registers[register];
-    const lastBit = (val & 0b10000000) === 0 ? 0 : 1;
-    const result = ((val & 0b01111111) << 1) + lastBit;
+    const lastBit = getLastBit(val, BitLength.OneByte);
+    const result = ((val & 0b0111_1111) << 1) + lastBit;
     this.#registers[register] = result;
     this.carryFlag = lastBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
@@ -1484,8 +1506,8 @@ class Z80 {
       addrLowerByteRegister
     );
     const val = this.#memory.readByte(addr);
-    const lastBit = (val & 0b10000000) === 0 ? 0 : 1;
-    const result = ((val & 0b01111111) << 1) + lastBit;
+    const lastBit = getLastBit(val, BitLength.OneByte);
+    const result = ((val & 0b0111_1111) << 1) + lastBit;
     this.#memory.writeByte(addr, result);
     this.carryFlag = lastBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
@@ -1495,8 +1517,8 @@ class Z80 {
 
   private RRC_R(register: Z80SingleByteRegisters) {
     const val = this.#registers[register];
-    const firstBit = val & 1;
-    const result = ((val & 0b11111110) >> 1) | (firstBit << 7);
+    const firstBit = getFirstBit(val);
+    const result = ((val & 0b1111_1110) >> 1) | (firstBit << 7);
     this.#registers[register] = result;
     this.carryFlag = firstBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
@@ -1513,8 +1535,8 @@ class Z80 {
       addrLowerByteRegister
     );
     const val = this.#memory.readByte(addr);
-    const firstBit = val & 1;
-    const result = ((val & 0b11111110) >> 1) | (firstBit << 7);
+    const firstBit = getFirstBit(val);
+    const result = ((val & 0b1111_1110) >> 1) | (firstBit << 7);
     this.#memory.writeByte(addr, result);
     this.carryFlag = firstBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
@@ -1524,9 +1546,9 @@ class Z80 {
 
   private RL_R(register: Z80SingleByteRegisters) {
     const val = this.#registers[register];
-    const lastBit = (val & 0b10000000) === 0 ? 0 : 1;
+    const lastBit = getLastBit(val, BitLength.OneByte);
     const add = this.carryFlag ? 1 : 0;
-    const result = ((val & 0b01111111) << 1) + add;
+    const result = ((val & 0b0111_1111) << 1) + add;
     this.#registers[register] = result;
     this.carryFlag = lastBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
@@ -1543,9 +1565,69 @@ class Z80 {
       addrLowerByteRegister
     );
     const val = this.#memory.readByte(addr);
-    const lastBit = (val & 0b10000000) === 0 ? 0 : 1;
+    const lastBit = getLastBit(val, BitLength.OneByte);
     const add = this.carryFlag ? 1 : 0;
-    const result = ((val & 0b01111111) << 1) + add;
+    const result = ((val & 0b0111_1111) << 1) + add;
+    this.#memory.writeByte(addr, result);
+    this.carryFlag = lastBit === 1;
+    this.zeroFlag = shouldSetZeroFlag(result);
+
+    return 4 as const;
+  }
+
+  private RR_R(register: Z80SingleByteRegisters) {
+    const val = this.#registers[register];
+    const firstBit = getFirstBit(val);
+    const add = this.carryFlag ? 1 : 0;
+    const result = ((val & 0b1111_1110) >> 1) + (add << 7);
+    this.#registers[register] = result;
+    this.carryFlag = firstBit === 1;
+    this.zeroFlag = shouldSetZeroFlag(result);
+
+    return 2 as const;
+  }
+
+  private RR_RRa(
+    addrHigherByteRegister: Z80SingleByteRegisters,
+    addrLowerByteRegister: Z80SingleByteRegisters
+  ) {
+    const addr = this.joinRegisterPair(
+      addrHigherByteRegister,
+      addrLowerByteRegister
+    );
+    const val = this.#memory.readByte(addr);
+    const firstBit = getFirstBit(val);
+    const add = this.carryFlag ? 1 : 0;
+    const result = ((val & 0b1111_1110) >> 1) + (add << 7);
+    this.#memory.writeByte(addr, result);
+    this.carryFlag = firstBit === 1;
+    this.zeroFlag = shouldSetZeroFlag(result);
+
+    return 4 as const;
+  }
+
+  private SLA_R(register: Z80SingleByteRegisters) {
+    const val = this.#registers[register];
+    const lastBit = getLastBit(val, BitLength.OneByte);
+    const result = (val & 0b0111_1111) << 1;
+    this.#registers[register] = result;
+    this.carryFlag = lastBit === 1;
+    this.zeroFlag = shouldSetZeroFlag(result);
+
+    return 2 as const;
+  }
+
+  private SLA_RRa(
+    addrHigherByteRegister: Z80SingleByteRegisters,
+    addrLowerByteRegister: Z80SingleByteRegisters
+  ) {
+    const addr = this.joinRegisterPair(
+      addrHigherByteRegister,
+      addrLowerByteRegister
+    );
+    const val = this.#memory.readByte(addr);
+    const lastBit = getLastBit(val, BitLength.OneByte);
+    const result = (val & 0b0111_1111) << 1;
     this.#memory.writeByte(addr, result);
     this.carryFlag = lastBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
@@ -3130,6 +3212,78 @@ class Z80 {
   }
 
   // ***** [3rd 8 ops] [0x10 - 0x17] ends  *****
+
+  // ***** [4th 8 ops] [0x18 - 0x1f] starts  *****
+
+  private RR_B() {
+    return this.RR_R('b');
+  }
+
+  private RR_C() {
+    return this.RR_R('c');
+  }
+
+  private RR_D() {
+    return this.RR_R('d');
+  }
+
+  private RR_E() {
+    return this.RR_R('e');
+  }
+
+  private RR_H() {
+    return this.RR_R('h');
+  }
+
+  private RR_L() {
+    return this.RR_R('l');
+  }
+
+  private RR_HLa() {
+    return this.RR_RRa('h', 'l');
+  }
+
+  private RR_A() {
+    return this.RR_R('a');
+  }
+
+  // ***** [4th 8 ops] [0x18 - 0x1f] ends  *****
+
+  // ***** [5th 8 ops] [0x20 - 0x27] starts  *****
+
+  private SLA_B() {
+    return this.SLA_R('b');
+  }
+
+  private SLA_C() {
+    return this.SLA_R('c');
+  }
+
+  private SLA_D() {
+    return this.SLA_R('d');
+  }
+
+  private SLA_E() {
+    return this.SLA_R('e');
+  }
+
+  private SLA_H() {
+    return this.SLA_R('h');
+  }
+
+  private SLA_L() {
+    return this.SLA_R('l');
+  }
+
+  private SLA_HLa() {
+    return this.SLA_RRa('h', 'l');
+  }
+
+  private SLA_A() {
+    return this.SLA_R('a');
+  }
+
+  // ***** [5th 8 ops] [0x20 - 0x27] ends  *****
 }
 
 function shouldSetZeroFlag(result: number) {

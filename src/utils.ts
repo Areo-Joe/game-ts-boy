@@ -122,6 +122,18 @@ export function performOperationOnOperandsWithBitLength(
   return result;
 }
 
+export function getBit(val: number, bitIndex: number) {
+  return (val & (1 << bitIndex)) >> bitIndex;
+}
+
+export function getLastBit(val: number, bitLength: number) {
+  return getBit(val, bitLength - 1);
+}
+
+export function getFirstBit(val: number) {
+  return getBit(val, 0);
+}
+
 export function lowerByteOfDoubleByte(val: number): number {
   return val & 0xff;
 }
