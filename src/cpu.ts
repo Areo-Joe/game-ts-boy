@@ -379,6 +379,18 @@ class Z80 {
     this.RST_7,
   ];
 
+  #opMapCBPrefixed = [
+    // 1st
+    this.RLC_B,
+    this.RLC_C,
+    this.RLC_D,
+    this.RLC_E,
+    this.RLC_H,
+    this.RLC_L,
+    this.RLC_HLa,
+    this.RLC_A,
+  ];
+
   run() {
     while (true) {
       const opcode = this.readFromPcAndIncPc();
@@ -1428,6 +1440,35 @@ class Z80 {
     const addr = this.joinTwoByte(addrH, addrL);
     const val = this.#memory.readByte(addr);
     this.#registers[targetRegister] = val;
+
+    return 4 as const;
+  }
+
+  private RLC_R(register: Z80SingleByteRegisters) {
+    const val = this.#registers[register];
+    const lastBit = val & 0b10000000;
+    const result = ((val & 0b01111111) << 1) + lastBit;
+    this.#registers[register] = result;
+    this.carryFlag = result === 1;
+    this.zeroFlag = shouldSetZeroFlag(result);
+
+    return 2 as const;
+  }
+
+  private RLC_RRa(
+    addrHigherByteRegister: Z80SingleByteRegisters,
+    addrLowerByteRegister: Z80SingleByteRegisters
+  ) {
+    const addr = this.joinRegisterPair(
+      addrHigherByteRegister,
+      addrLowerByteRegister
+    );
+    const val = this.#memory.readByte(addr);
+    const lastBit = val & 0b10000000;
+    const result = ((val & 0b01111111) << 1) + lastBit;
+    this.#memory.writeByte(addr, result);
+    this.carryFlag = result === 1;
+    this.zeroFlag = shouldSetZeroFlag(result);
 
     return 4 as const;
   }
@@ -2501,7 +2542,8 @@ class Z80 {
   }
 
   private CALL_OP_WITH_CB_PREFIX() {
-    throw new Error('Not implemented yet! We will need another op map!');
+    const opcode = this.readFromPcAndIncPc();
+    return this.#opMapCBPrefixed[opcode]();
   }
 
   private CALL_Z_d16_a() {
@@ -2898,6 +2940,44 @@ class Z80 {
   }
 
   // ***** [32nd 8 ops] [0xf8 - 0xff] ends  *****
+
+  // ***** CB prefixed op set starts *****
+
+  // ***** [1st 8 ops] [0x00 - 0x07] starts  *****
+
+  private RLC_B() {
+    return this.RLC_R('b');
+  }
+
+  private RLC_C() {
+    return this.RLC_R('c');
+  }
+
+  private RLC_D() {
+    return this.RLC_R('d');
+  }
+
+  private RLC_E() {
+    return this.RLC_R('e');
+  }
+
+  private RLC_H() {
+    return this.RLC_R('h');
+  }
+
+  private RLC_L() {
+    return this.RLC_R('l');
+  }
+
+  private RLC_HLa() {
+    return this.RLC_RRa('h', 'l');
+  }
+
+  private RLC_A() {
+    return this.RLC_R('a');
+  }
+
+  // ***** [1st 8 ops] [0x00 - 0x07] ends  *****
 }
 
 function shouldSetZeroFlag(result: number) {
