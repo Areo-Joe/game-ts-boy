@@ -16,6 +16,7 @@ import {
   assertEven,
   getLastBit,
   getFirstBit,
+  getBit,
 } from './utils';
 
 // GB's cpu is a modified Z80, so...
@@ -1493,6 +1494,8 @@ class Z80 {
     this.#registers[register] = result;
     this.carryFlag = lastBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = false;
 
     return 2 as const;
   }
@@ -1511,6 +1514,8 @@ class Z80 {
     this.#memory.writeByte(addr, result);
     this.carryFlag = lastBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = false;
 
     return 4 as const;
   }
@@ -1522,6 +1527,8 @@ class Z80 {
     this.#registers[register] = result;
     this.carryFlag = firstBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = false;
 
     return 2 as const;
   }
@@ -1540,6 +1547,8 @@ class Z80 {
     this.#memory.writeByte(addr, result);
     this.carryFlag = firstBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = false;
 
     return 4 as const;
   }
@@ -1552,6 +1561,8 @@ class Z80 {
     this.#registers[register] = result;
     this.carryFlag = lastBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = false;
 
     return 2 as const;
   }
@@ -1571,6 +1582,8 @@ class Z80 {
     this.#memory.writeByte(addr, result);
     this.carryFlag = lastBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = false;
 
     return 4 as const;
   }
@@ -1583,6 +1596,8 @@ class Z80 {
     this.#registers[register] = result;
     this.carryFlag = firstBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = false;
 
     return 2 as const;
   }
@@ -1602,6 +1617,8 @@ class Z80 {
     this.#memory.writeByte(addr, result);
     this.carryFlag = firstBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = false;
 
     return 4 as const;
   }
@@ -1613,6 +1630,8 @@ class Z80 {
     this.#registers[register] = result;
     this.carryFlag = lastBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = false;
 
     return 2 as const;
   }
@@ -1631,6 +1650,163 @@ class Z80 {
     this.#memory.writeByte(addr, result);
     this.carryFlag = lastBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = false;
+
+    return 4 as const;
+  }
+
+  private SRA_R(register: Z80SingleByteRegisters) {
+    const val = this.#registers[register];
+    const firstBit = getFirstBit(val);
+    const lastBit = getLastBit(val, BitLength.OneByte);
+    const result = ((val & 0b1000_0000) >> 1) + (lastBit << 7);
+    this.#registers[register] = result;
+    this.carryFlag = firstBit === 1;
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = false;
+
+    return 2 as const;
+  }
+
+  private SRA_RRa(
+    addrHigherByteRegister: Z80SingleByteRegisters,
+    addrLowerByteRegister: Z80SingleByteRegisters
+  ) {
+    const addr = this.joinRegisterPair(
+      addrHigherByteRegister,
+      addrLowerByteRegister
+    );
+    const val = this.#memory.readByte(addr);
+    const firstBit = getFirstBit(val);
+    const lastBit = getLastBit(val, BitLength.OneByte);
+    const result = ((val & 0b1000_0000) >> 1) + (lastBit << 7);
+    this.#memory.writeByte(addr, result);
+    this.carryFlag = firstBit === 1;
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = false;
+
+    return 4 as const;
+  }
+
+  private SWAP_R(register: Z80SingleByteRegisters) {
+    const val = this.#registers[register];
+    const highHalf = (val & 0xf0) >> 4;
+    const lowHalf = val & 0x0f;
+    const result = lowHalf << (4 + highHalf);
+    this.#registers[register] = result;
+    this.carryFlag = false;
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = false;
+
+    return 2 as const;
+  }
+
+  private SWAP_RRa(
+    addrHigherByteRegister: Z80SingleByteRegisters,
+    addrLowerByteRegister: Z80SingleByteRegisters
+  ) {
+    const addr = this.joinRegisterPair(
+      addrHigherByteRegister,
+      addrLowerByteRegister
+    );
+    const val = this.#memory.readByte(addr);
+    const highHalf = (val & 0xf0) >> 4;
+    const lowHalf = val & 0x0f;
+    const result = lowHalf << (4 + highHalf);
+    this.#memory.writeByte(addr, result);
+    this.carryFlag = false;
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = false;
+
+    return 4 as const;
+  }
+
+  private SRL_R(register: Z80SingleByteRegisters) {
+    const val = this.#registers[register];
+    const firstBit = getFirstBit(val);
+    const result = (val & 0b1111_1110) >> 1;
+    this.#registers[register] = result;
+    this.carryFlag = firstBit === 1;
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = false;
+
+    return 2 as const;
+  }
+
+  private SRL_RRa(
+    addrHigherByteRegister: Z80SingleByteRegisters,
+    addrLowerByteRegister: Z80SingleByteRegisters
+  ) {
+    const addr = this.joinRegisterPair(
+      addrHigherByteRegister,
+      addrLowerByteRegister
+    );
+    const val = this.#memory.readByte(addr);
+    const firstBit = getFirstBit(val);
+    const result = (val & 0b1111_1110) >> 1;
+    this.#memory.writeByte(addr, result);
+    this.carryFlag = firstBit === 1;
+    this.zeroFlag = shouldSetZeroFlag(result);
+    this.substractionFlag = false;
+    this.halfCarryFlag = false;
+
+    return 4 as const;
+  }
+
+  private BIT_n_R(n: number, register: Z80SingleByteRegisters) {
+    const val = this.#registers[register];
+    const bit = getBit(val, n);
+    this.zeroFlag = bit === 0;
+    this.substractionFlag = false;
+    this.halfCarryFlag = true;
+
+    return 2 as const;
+  }
+
+  private BIT_n_RRa(
+    n: number,
+    addrHigherByteRegister: Z80SingleByteRegisters,
+    addrLowerByteRegister: Z80SingleByteRegisters
+  ) {
+    const addr = this.joinRegisterPair(
+      addrHigherByteRegister,
+      addrLowerByteRegister
+    );
+    const val = this.#memory.readByte(addr);
+    const bit = getBit(val, n);
+    this.zeroFlag = bit === 0;
+    this.substractionFlag = false;
+    this.halfCarryFlag = true;
+
+    return 3 as const;
+  }
+
+  private RES_n_R(n: number, register: Z80SingleByteRegisters) {
+    const val = this.#registers[register];
+    const result = val & (~(1 << n) & 0xff);
+    this.#registers[register] = result;
+
+    return 2 as const;
+  }
+
+  private RES_n_RRa(
+    n: number,
+    addrHigherByteRegister: Z80SingleByteRegisters,
+    addrLowerByteRegister: Z80SingleByteRegisters
+  ) {
+    const addr = this.joinRegisterPair(
+      addrHigherByteRegister,
+      addrLowerByteRegister
+    );
+    const val = this.#memory.readByte(addr);
+    const result = val & (~(1 << n) & 0xff);
+    this.#memory.writeByte(addr, result);
 
     return 4 as const;
   }
