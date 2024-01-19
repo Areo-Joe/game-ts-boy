@@ -1811,6 +1811,30 @@ class Z80 {
     return 4 as const;
   }
 
+  private SET_n_R(n: number, register: Z80SingleByteRegisters) {
+    const val = this.#registers[register];
+    const result = val & (1 << n);
+    this.#registers[register] = result;
+
+    return 2 as const;
+  }
+
+  private SET_n_RRa(
+    n: number,
+    addrHigherByteRegister: Z80SingleByteRegisters,
+    addrLowerByteRegister: Z80SingleByteRegisters
+  ) {
+    const addr = this.joinRegisterPair(
+      addrHigherByteRegister,
+      addrLowerByteRegister
+    );
+    const val = this.#memory.readByte(addr);
+    const result = val & (1 << n);
+    this.#memory.writeByte(addr, result);
+
+    return 4 as const;
+  }
+
   // ***** General Ops ends *****
 
   // ***** [1st 8 ops] [0x00 - 0x07] starts *****
@@ -3460,6 +3484,402 @@ class Z80 {
   }
 
   // ***** [5th 8 ops] [0x20 - 0x27] ends  *****
+
+  // ***** [6th 8 ops] [0x28 - 0x2f] starts  *****
+
+  private SRA_B() {
+    return this.SLA_R('b');
+  }
+
+  private SRA_C() {
+    return this.SLA_R('c');
+  }
+
+  private SRA_D() {
+    return this.SLA_R('d');
+  }
+
+  private SRA_E() {
+    return this.SLA_R('e');
+  }
+
+  private SRA_H() {
+    return this.SLA_R('h');
+  }
+
+  private SRA_L() {
+    return this.SLA_R('l');
+  }
+
+  private SRA_HLa() {
+    return this.SLA_RRa('h', 'l');
+  }
+
+  private SRA_A() {
+    return this.SLA_R('a');
+  }
+
+  // ***** [6th 8 ops] [0x28 - 0x2f] ends  *****
+
+  // ***** [7th 8 ops] [0x30 - 0x37] starts  *****
+
+  private SWAP_B() {
+    return this.SLA_R('b');
+  }
+
+  private SWAP_C() {
+    return this.SLA_R('c');
+  }
+
+  private SWAP_D() {
+    return this.SLA_R('d');
+  }
+
+  private SWAP_E() {
+    return this.SLA_R('e');
+  }
+
+  private SWAP_H() {
+    return this.SLA_R('h');
+  }
+
+  private SWAP_L() {
+    return this.SLA_R('l');
+  }
+
+  private SWAP_HLa() {
+    return this.SLA_RRa('h', 'l');
+  }
+
+  private SWAP_A() {
+    return this.SLA_R('a');
+  }
+
+  // ***** [7th 8 ops] [0x30 - 0x37] ends  *****
+
+  // ***** [8th 8 ops] [0x38 - 0x3f] starts  *****
+
+  private SRL_B() {
+    return this.SLA_R('b');
+  }
+
+  private SRL_C() {
+    return this.SLA_R('c');
+  }
+
+  private SRL_D() {
+    return this.SLA_R('d');
+  }
+
+  private SRL_E() {
+    return this.SLA_R('e');
+  }
+
+  private SRL_H() {
+    return this.SLA_R('h');
+  }
+
+  private SRL_L() {
+    return this.SLA_R('l');
+  }
+
+  private SRL_HLa() {
+    return this.SLA_RRa('h', 'l');
+  }
+
+  private SRL_A() {
+    return this.SLA_R('a');
+  }
+
+  // ***** [8th 8 ops] [0x38 - 0x3f] ends  *****
+
+  // ***** [9th 8 ops] [0x40 - 0x47] starts  *****
+
+  private BIT_0_B() {
+    return this.BIT_n_R(0, 'b');
+  }
+
+  private BIT_0_C() {
+    return this.BIT_n_R(0, 'c');
+  }
+
+  private BIT_0_D() {
+    return this.BIT_n_R(0, 'd');
+  }
+
+  private BIT_0_E() {
+    return this.BIT_n_R(0, 'e');
+  }
+
+  private BIT_0_H() {
+    return this.BIT_n_R(0, 'h');
+  }
+
+  private BIT_0_L() {
+    return this.BIT_n_R(0, 'l');
+  }
+
+  private BIT_0_HLa() {
+    return this.BIT_n_RRa(0, 'h', 'l');
+  }
+
+  private BIT_0_A() {
+    return this.BIT_n_R(0, 'a');
+  }
+
+  // ***** [9th 8 ops] [0x40 - 0x47] ends  *****
+
+  // ***** [10th 8 ops] [0x48 - 0x4f] ends  *****
+
+  private BIT_1_B() {
+    return this.BIT_n_R(1, 'b');
+  }
+
+  private BIT_1_C() {
+    return this.BIT_n_R(1, 'c');
+  }
+
+  private BIT_1_D() {
+    return this.BIT_n_R(1, 'd');
+  }
+
+  private BIT_1_E() {
+    return this.BIT_n_R(1, 'e');
+  }
+
+  private BIT_1_H() {
+    return this.BIT_n_R(1, 'h');
+  }
+
+  private BIT_1_L() {
+    return this.BIT_n_R(1, 'l');
+  }
+
+  private BIT_1_HLa() {
+    return this.BIT_n_RRa(1, 'h', 'l');
+  }
+
+  private BIT_1_A() {
+    return this.BIT_n_R(1, 'a');
+  }
+
+  // ***** [10th 8 ops] [0x48 - 0x4f] ends  *****
+
+  // ***** [11th 8 ops] [0x50 - 0x57] starts  *****
+
+  private BIT_2_B() {
+    return this.BIT_n_R(2, 'b');
+  }
+
+  private BIT_2_C() {
+    return this.BIT_n_R(2, 'c');
+  }
+
+  private BIT_2_D() {
+    return this.BIT_n_R(2, 'd');
+  }
+
+  private BIT_2_E() {
+    return this.BIT_n_R(2, 'e');
+  }
+
+  private BIT_2_H() {
+    return this.BIT_n_R(2, 'h');
+  }
+
+  private BIT_2_L() {
+    return this.BIT_n_R(2, 'l');
+  }
+
+  private BIT_2_HLa() {
+    return this.BIT_n_RRa(2, 'h', 'l');
+  }
+
+  private BIT_2_A() {
+    return this.BIT_n_R(2, 'a');
+  }
+
+  // ***** [11th 8 ops] [0x50 - 0x57] ends  *****
+
+  // ***** [12th 8 ops] [0x58 - 0x5f] starts  *****
+
+  private BIT_3_B() {
+    return this.BIT_n_R(3, 'b');
+  }
+
+  private BIT_3_C() {
+    return this.BIT_n_R(3, 'c');
+  }
+
+  private BIT_3_D() {
+    return this.BIT_n_R(3, 'd');
+  }
+
+  private BIT_3_E() {
+    return this.BIT_n_R(3, 'e');
+  }
+
+  private BIT_3_H() {
+    return this.BIT_n_R(3, 'h');
+  }
+
+  private BIT_3_L() {
+    return this.BIT_n_R(3, 'l');
+  }
+
+  private BIT_3_HLa() {
+    return this.BIT_n_RRa(3, 'h', 'l');
+  }
+
+  private BIT_3_A() {
+    return this.BIT_n_R(3, 'a');
+  }
+
+  // ***** [12th 8 ops] [0x58 - 0x5f] ends  *****
+
+  // ***** [13th 8 ops] [0x60 - 0x67] starts  *****
+
+  private BIT_4_B() {
+    return this.BIT_n_R(4, 'b');
+  }
+
+  private BIT_4_C() {
+    return this.BIT_n_R(4, 'c');
+  }
+
+  private BIT_4_D() {
+    return this.BIT_n_R(4, 'd');
+  }
+
+  private BIT_4_E() {
+    return this.BIT_n_R(4, 'e');
+  }
+
+  private BIT_4_H() {
+    return this.BIT_n_R(4, 'h');
+  }
+
+  private BIT_4_L() {
+    return this.BIT_n_R(4, 'l');
+  }
+
+  private BIT_4_HLa() {
+    return this.BIT_n_RRa(4, 'h', 'l');
+  }
+
+  private BIT_4_A() {
+    return this.BIT_n_R(4, 'a');
+  }
+
+  // ***** [13th 8 ops] [0x60 - 0x67] ends  *****
+
+  // ***** [14th 8 ops] [0x68 - 0x6f] starts  *****
+
+  private BIT_5_B() {
+    return this.BIT_n_R(5, 'b');
+  }
+
+  private BIT_5_C() {
+    return this.BIT_n_R(5, 'c');
+  }
+
+  private BIT_5_D() {
+    return this.BIT_n_R(5, 'd');
+  }
+
+  private BIT_5_E() {
+    return this.BIT_n_R(5, 'e');
+  }
+
+  private BIT_5_H() {
+    return this.BIT_n_R(5, 'h');
+  }
+
+  private BIT_5_L() {
+    return this.BIT_n_R(5, 'l');
+  }
+
+  private BIT_5_HLa() {
+    return this.BIT_n_RRa(5, 'h', 'l');
+  }
+
+  private BIT_5_A() {
+    return this.BIT_n_R(5, 'a');
+  }
+
+  // ***** [14th 8 ops] [0x68 - 0x6f] ends  *****
+
+  // ***** [15th 8 ops] [0x70 - 0x77] starts  *****
+
+  private BIT_6_B() {
+    return this.BIT_n_R(6, 'b');
+  }
+
+  private BIT_6_C() {
+    return this.BIT_n_R(6, 'c');
+  }
+
+  private BIT_6_D() {
+    return this.BIT_n_R(6, 'd');
+  }
+
+  private BIT_6_E() {
+    return this.BIT_n_R(6, 'e');
+  }
+
+  private BIT_6_H() {
+    return this.BIT_n_R(6, 'h');
+  }
+
+  private BIT_6_L() {
+    return this.BIT_n_R(6, 'l');
+  }
+
+  private BIT_6_HLa() {
+    return this.BIT_n_RRa(6, 'h', 'l');
+  }
+
+  private BIT_6_A() {
+    return this.BIT_n_R(6, 'a');
+  }
+
+  // ***** [15th 8 ops] [0x70 - 0x77] ends  *****
+
+  // ***** [16th 8 ops] [0x78 - 0x7f] starts  *****
+
+  private BIT_7_B() {
+    return this.BIT_n_R(7, 'b');
+  }
+
+  private BIT_7_C() {
+    return this.BIT_n_R(7, 'c');
+  }
+
+  private BIT_7_D() {
+    return this.BIT_n_R(7, 'd');
+  }
+
+  private BIT_7_E() {
+    return this.BIT_n_R(7, 'e');
+  }
+
+  private BIT_7_H() {
+    return this.BIT_n_R(7, 'h');
+  }
+
+  private BIT_7_L() {
+    return this.BIT_n_R(7, 'l');
+  }
+
+  private BIT_7_HLa() {
+    return this.BIT_n_RRa(7, 'h', 'l');
+  }
+
+  private BIT_7_A() {
+    return this.BIT_n_R(7, 'a');
+  }
+
+  // ***** [16th 8 ops] [0x78 - 0x7f] ends  *****
 }
 
 function shouldSetZeroFlag(result: number) {
