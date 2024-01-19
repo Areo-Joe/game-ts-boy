@@ -432,6 +432,276 @@ class Z80 {
     this.SLA_L,
     this.SLA_HLa,
     this.SLA_A,
+
+    // 6th
+    this.SRA_B,
+    this.SRA_C,
+    this.SRA_D,
+    this.SRA_E,
+    this.SRA_H,
+    this.SRA_L,
+    this.SRA_HLa,
+    this.SRA_A,
+
+    // 7th
+    this.SWAP_B,
+    this.SWAP_C,
+    this.SWAP_D,
+    this.SWAP_E,
+    this.SWAP_H,
+    this.SWAP_L,
+    this.SWAP_HLa,
+    this.SWAP_A,
+
+    // 8th
+    this.SRL_B,
+    this.SRL_C,
+    this.SRL_D,
+    this.SRL_E,
+    this.SRL_H,
+    this.SRL_L,
+    this.SRL_HLa,
+    this.SRL_A,
+
+    // 9th
+    this.BIT_0_B,
+    this.BIT_0_C,
+    this.BIT_0_D,
+    this.BIT_0_E,
+    this.BIT_0_H,
+    this.BIT_0_L,
+    this.BIT_0_HLa,
+    this.BIT_0_A,
+
+    // 10th
+    this.BIT_1_B,
+    this.BIT_1_C,
+    this.BIT_1_D,
+    this.BIT_1_E,
+    this.BIT_1_H,
+    this.BIT_1_L,
+    this.BIT_1_HLa,
+    this.BIT_1_A,
+
+    // 11th
+    this.BIT_2_B,
+    this.BIT_2_C,
+    this.BIT_2_D,
+    this.BIT_2_E,
+    this.BIT_2_H,
+    this.BIT_2_L,
+    this.BIT_2_HLa,
+    this.BIT_2_A,
+
+    // 12th
+    this.BIT_3_B,
+    this.BIT_3_C,
+    this.BIT_3_D,
+    this.BIT_3_E,
+    this.BIT_3_H,
+    this.BIT_3_L,
+    this.BIT_3_HLa,
+    this.BIT_3_A,
+
+    // 13th
+    this.BIT_4_B,
+    this.BIT_4_C,
+    this.BIT_4_D,
+    this.BIT_4_E,
+    this.BIT_4_H,
+    this.BIT_4_L,
+    this.BIT_4_HLa,
+    this.BIT_4_A,
+
+    // 14th
+    this.BIT_5_B,
+    this.BIT_5_C,
+    this.BIT_5_D,
+    this.BIT_5_E,
+    this.BIT_5_H,
+    this.BIT_5_L,
+    this.BIT_5_HLa,
+    this.BIT_5_A,
+
+    // 15th
+    this.BIT_6_B,
+    this.BIT_6_C,
+    this.BIT_6_D,
+    this.BIT_6_E,
+    this.BIT_6_H,
+    this.BIT_6_L,
+    this.BIT_6_HLa,
+    this.BIT_6_A,
+
+    // 16th
+    this.BIT_7_B,
+    this.BIT_7_C,
+    this.BIT_7_D,
+    this.BIT_7_E,
+    this.BIT_7_H,
+    this.BIT_7_L,
+    this.BIT_7_HLa,
+    this.BIT_7_A,
+
+    // 17th
+    this.RES_0_B,
+    this.RES_0_C,
+    this.RES_0_D,
+    this.RES_0_E,
+    this.RES_0_H,
+    this.RES_0_L,
+    this.RES_0_HLa,
+    this.RES_0_A,
+
+    // 18th
+    this.RES_1_B,
+    this.RES_1_C,
+    this.RES_1_D,
+    this.RES_1_E,
+    this.RES_1_H,
+    this.RES_1_L,
+    this.RES_1_HLa,
+    this.RES_1_A,
+
+    // 19th
+    this.RES_2_B,
+    this.RES_2_C,
+    this.RES_2_D,
+    this.RES_2_E,
+    this.RES_2_H,
+    this.RES_2_L,
+    this.RES_2_HLa,
+    this.RES_2_A,
+
+    // 20th
+    this.RES_3_B,
+    this.RES_3_C,
+    this.RES_3_D,
+    this.RES_3_E,
+    this.RES_3_H,
+    this.RES_3_L,
+    this.RES_3_HLa,
+    this.RES_3_A,
+
+    // 21th
+    this.RES_4_B,
+    this.RES_4_C,
+    this.RES_4_D,
+    this.RES_4_E,
+    this.RES_4_H,
+    this.RES_4_L,
+    this.RES_4_HLa,
+    this.RES_4_A,
+
+    // 22th
+    this.RES_5_B,
+    this.RES_5_C,
+    this.RES_5_D,
+    this.RES_5_E,
+    this.RES_5_H,
+    this.RES_5_L,
+    this.RES_5_HLa,
+    this.RES_5_A,
+
+    // 23th
+    this.RES_6_B,
+    this.RES_6_C,
+    this.RES_6_D,
+    this.RES_6_E,
+    this.RES_6_H,
+    this.RES_6_L,
+    this.RES_6_HLa,
+    this.RES_6_A,
+
+    // 24th
+    this.RES_7_B,
+    this.RES_7_C,
+    this.RES_7_D,
+    this.RES_7_E,
+    this.RES_7_H,
+    this.RES_7_L,
+    this.RES_7_HLa,
+    this.RES_7_A,
+
+    // 25th
+    this.SET_0_B,
+    this.SET_0_C,
+    this.SET_0_D,
+    this.SET_0_E,
+    this.SET_0_H,
+    this.SET_0_L,
+    this.SET_0_HLa,
+    this.SET_0_A,
+
+    // 26th
+    this.SET_1_B,
+    this.SET_1_C,
+    this.SET_1_D,
+    this.SET_1_E,
+    this.SET_1_H,
+    this.SET_1_L,
+    this.SET_1_HLa,
+    this.SET_1_A,
+
+    // 27th
+    this.SET_2_B,
+    this.SET_2_C,
+    this.SET_2_D,
+    this.SET_2_E,
+    this.SET_2_H,
+    this.SET_2_L,
+    this.SET_2_HLa,
+    this.SET_2_A,
+
+    // 28th
+    this.SET_3_B,
+    this.SET_3_C,
+    this.SET_3_D,
+    this.SET_3_E,
+    this.SET_3_H,
+    this.SET_3_L,
+    this.SET_3_HLa,
+    this.SET_3_A,
+
+    // 29th
+    this.SET_4_B,
+    this.SET_4_C,
+    this.SET_4_D,
+    this.SET_4_E,
+    this.SET_4_H,
+    this.SET_4_L,
+    this.SET_4_HLa,
+    this.SET_4_A,
+
+    // 30th
+    this.SET_5_B,
+    this.SET_5_C,
+    this.SET_5_D,
+    this.SET_5_E,
+    this.SET_5_H,
+    this.SET_5_L,
+    this.SET_5_HLa,
+    this.SET_5_A,
+
+    // 31th
+    this.SET_6_B,
+    this.SET_6_C,
+    this.SET_6_D,
+    this.SET_6_E,
+    this.SET_6_H,
+    this.SET_6_L,
+    this.SET_6_HLa,
+    this.SET_6_A,
+
+    // 32th
+    this.SET_7_B,
+    this.SET_7_C,
+    this.SET_7_D,
+    this.SET_7_E,
+    this.SET_7_H,
+    this.SET_7_L,
+    this.SET_7_HLa,
+    this.SET_7_A,
   ];
 
   run() {
@@ -1879,7 +2149,7 @@ class Z80 {
 
   // ***** [1st 8 ops] [0x00 - 0x07] ends *****
 
-  // ***** [2nd 8 ops] [0x08 - 0x0f] starts  *****
+  // ***** [2nd 8 ops] [0x08 - 0x0f] starts *****
 
   private LD_d16a_SP() {
     const addrLB = this.readFromPcAndIncPc();
@@ -1923,9 +2193,9 @@ class Z80 {
     return 1 as const;
   }
 
-  // ***** [2nd 8 ops] [0x08 - 0x0f] ends  *****
+  // ***** [2nd 8 ops] [0x08 - 0x0f] ends *****
 
-  // ***** [3rd 8 ops] [0x10 - 0x17] ends  *****
+  // ***** [3rd 8 ops] [0x10 - 0x17] ends *****
 
   private Stop() {
     // todo: check usage
@@ -1969,9 +2239,9 @@ class Z80 {
     return 1 as const;
   }
 
-  // ***** [3rd 8 ops] [0x10 - 0x17] ends  *****
+  // ***** [3rd 8 ops] [0x10 - 0x17] ends *****
 
-  // ***** [4th 8 ops] [0x18 - 0x1f] starts  *****
+  // ***** [4th 8 ops] [0x18 - 0x1f] starts *****
 
   private JR_s8() {
     const notParsed8Bit = this.readFromPcAndIncPc();
@@ -2017,9 +2287,9 @@ class Z80 {
     return 1 as const;
   }
 
-  // ***** [4th 8 ops] [0x18 - 0x1f] ends  *****
+  // ***** [4th 8 ops] [0x18 - 0x1f] ends *****
 
-  // ***** [5th 8 ops] [0x20 - 0x27] starts  *****
+  // ***** [5th 8 ops] [0x20 - 0x27] starts *****
 
   private JR_NZ_s8() {
     if (this.zeroFlag) {
@@ -2072,9 +2342,9 @@ class Z80 {
     return 1 as const;
   }
 
-  // ***** [5th 8 ops] [0x20 - 0x27] ends  *****
+  // ***** [5th 8 ops] [0x20 - 0x27] ends *****
 
-  // ***** [6th 8 ops] [0x28 - 0x2f] starts  *****
+  // ***** [6th 8 ops] [0x28 - 0x2f] starts *****
 
   private JR_Z_s8() {
     if (this.zeroFlag) {
@@ -2123,9 +2393,9 @@ class Z80 {
     return 1 as const;
   }
 
-  // ***** [6th 8 ops] [0x28 - 0x2f] ends  *****
+  // ***** [6th 8 ops] [0x28 - 0x2f] ends *****
 
-  // ***** [7th 8 ops] [0x30 - 0x37] starts  *****
+  // ***** [7th 8 ops] [0x30 - 0x37] starts *****
 
   private JR_NC_s8() {
     if (this.carryFlag) {
@@ -2173,9 +2443,9 @@ class Z80 {
     return 1 as const;
   }
 
-  // ***** [7th 8 ops] [0x30 - 0x37] ends  *****
+  // ***** [7th 8 ops] [0x30 - 0x37] ends *****
 
-  // ***** [8th 8 ops] [0x38 - 0x3f] starts  *****
+  // ***** [8th 8 ops] [0x38 - 0x3f] starts *****
 
   private JR_C_s8() {
     if (this.carryFlag) {
@@ -2224,9 +2494,9 @@ class Z80 {
     return 1 as const;
   }
 
-  // ***** [8th 8 ops] [0x38 - 0x3f] ends  *****
+  // ***** [8th 8 ops] [0x38 - 0x3f] ends *****
 
-  // ***** [9th 8 ops] [0x40 - 0x47] starts  *****
+  // ***** [9th 8 ops] [0x40 - 0x47] starts *****
 
   private LD_B_B() {
     return this.LD_R_R('b', 'b');
@@ -2260,9 +2530,9 @@ class Z80 {
     return this.LD_R_R('b', 'a');
   }
 
-  // ***** [9th 8 ops] [0x40 - 0x47] ends  *****
+  // ***** [9th 8 ops] [0x40 - 0x47] ends *****
 
-  // ***** [10th 8 ops] [0x48 - 0x4f] starts  *****
+  // ***** [10th 8 ops] [0x48 - 0x4f] starts *****
 
   private LD_C_B() {
     return this.LD_R_R('c', 'b');
@@ -2296,9 +2566,9 @@ class Z80 {
     return this.LD_R_R('c', 'a');
   }
 
-  // ***** [10th 8 ops] [0x48 - 0x4f] ends  *****
+  // ***** [10th 8 ops] [0x48 - 0x4f] ends *****
 
-  // ***** [11th 8 ops] [0x50 - 0x57] starts  *****
+  // ***** [11th 8 ops] [0x50 - 0x57] starts *****
 
   private LD_D_B() {
     return this.LD_R_R('d', 'b');
@@ -2332,9 +2602,9 @@ class Z80 {
     return this.LD_R_R('d', 'a');
   }
 
-  // ***** [11th 8 ops] [0x50 - 0x57] ends  *****
+  // ***** [11th 8 ops] [0x50 - 0x57] ends *****
 
-  // ***** [12th 8 ops] [0x58 - 0x5f] starts  *****
+  // ***** [12th 8 ops] [0x58 - 0x5f] starts *****
 
   private LD_E_B() {
     return this.LD_R_R('e', 'b');
@@ -2368,9 +2638,9 @@ class Z80 {
     return this.LD_R_R('e', 'a');
   }
 
-  // ***** [12th 8 ops] [0x58 - 0x5f] ends  *****
+  // ***** [12th 8 ops] [0x58 - 0x5f] ends *****
 
-  // ***** [13th 8 ops] [0x60 - 0x67] starts  *****
+  // ***** [13th 8 ops] [0x60 - 0x67] starts *****
 
   private LD_H_B() {
     return this.LD_R_R('h', 'b');
@@ -2404,9 +2674,9 @@ class Z80 {
     return this.LD_R_R('h', 'a');
   }
 
-  // ***** [13th 8 ops] [0x69 - 0x67] ends  *****
+  // ***** [13th 8 ops] [0x69 - 0x67] ends *****
 
-  // ***** [14th 8 ops] [0x68 - 0x6f] starts  *****
+  // ***** [14th 8 ops] [0x68 - 0x6f] starts *****
 
   private LD_L_B() {
     return this.LD_R_R('l', 'b');
@@ -2440,9 +2710,9 @@ class Z80 {
     return this.LD_R_R('l', 'a');
   }
 
-  // ***** [14th 8 ops] [0x68 - 0x6f] ends  *****
+  // ***** [14th 8 ops] [0x68 - 0x6f] ends *****
 
-  // ***** [15th 8 ops] [0x70 - 0x77] starts  *****
+  // ***** [15th 8 ops] [0x70 - 0x77] starts *****
 
   private LD_HLa_B() {
     return this.LD_RRa_R('h', 'l', 'b');
@@ -2476,9 +2746,9 @@ class Z80 {
     return this.LD_RRa_R('h', 'l', 'a');
   }
 
-  // ***** [15th 8 ops] [0x70 - 0x77] ends  *****
+  // ***** [15th 8 ops] [0x70 - 0x77] ends *****
 
-  // ***** [16th 8 ops] [0x78 - 0x7f] starts  *****
+  // ***** [16th 8 ops] [0x78 - 0x7f] starts *****
 
   private LD_A_B() {
     return this.LD_R_R('a', 'b');
@@ -2512,9 +2782,9 @@ class Z80 {
     return this.LD_R_R('a', 'a');
   }
 
-  // ***** [16th 8 ops] [0x78 - 0x7f] ends  *****
+  // ***** [16th 8 ops] [0x78 - 0x7f] ends *****
 
-  // ***** [17th 8 ops] [0x80 - 0x87] starts  *****
+  // ***** [17th 8 ops] [0x80 - 0x87] starts *****
 
   private ADD_A_B() {
     return this.ADD_R_R('a', 'b');
@@ -2548,9 +2818,9 @@ class Z80 {
     return this.ADD_R_R('a', 'a');
   }
 
-  // ***** [17th 8 ops] [0x80 - 0x87] ends  *****
+  // ***** [17th 8 ops] [0x80 - 0x87] ends *****
 
-  // ***** [18th 8 ops] [0x88 - 0x8f] starts  *****
+  // ***** [18th 8 ops] [0x88 - 0x8f] starts *****
 
   private ADC_A_B() {
     return this.ADC_R_R('a', 'b');
@@ -2584,9 +2854,9 @@ class Z80 {
     return this.ADC_R_R('a', 'a');
   }
 
-  // ***** [18th 8 ops] [0x88 - 0x8f] ends  *****
+  // ***** [18th 8 ops] [0x88 - 0x8f] ends *****
 
-  // ***** [19th 8 ops] [0x90 - 0x97] starts  *****
+  // ***** [19th 8 ops] [0x90 - 0x97] starts *****
 
   private SUB_A_B() {
     return this.SUB_R_R('a', 'b');
@@ -2620,9 +2890,9 @@ class Z80 {
     return this.SUB_R_R('a', 'a');
   }
 
-  // ***** [19th 8 ops] [0x90 - 0x97] ends  *****
+  // ***** [19th 8 ops] [0x90 - 0x97] ends *****
 
-  // ***** [20th 8 ops] [0x98 - 0x9f] starts  *****
+  // ***** [20th 8 ops] [0x98 - 0x9f] starts *****
 
   private SBC_A_B() {
     return this.SBC_R_R('a', 'b');
@@ -2656,9 +2926,9 @@ class Z80 {
     return this.SBC_R_R('a', 'a');
   }
 
-  // ***** [20th 8 ops] [0x98 - 0x9f] ends  *****
+  // ***** [20th 8 ops] [0x98 - 0x9f] ends *****
 
-  // ***** [21st 8 ops] [0xa0 - 0xa7] starts  *****
+  // ***** [21st 8 ops] [0xa0 - 0xa7] starts *****
 
   private AND_A_B() {
     return this.AND_R_R('a', 'b');
@@ -2692,9 +2962,9 @@ class Z80 {
     return this.AND_R_R('a', 'a');
   }
 
-  // ***** [21st 8 ops] [0xa0 - 0xa7] ends  *****
+  // ***** [21st 8 ops] [0xa0 - 0xa7] ends *****
 
-  // ***** [22nd 8 ops] [0xa8 - 0xaf] starts  *****
+  // ***** [22nd 8 ops] [0xa8 - 0xaf] starts *****
 
   private XOR_A_B() {
     return this.XOR_R_R('a', 'b');
@@ -2728,9 +2998,9 @@ class Z80 {
     return this.XOR_R_R('a', 'a');
   }
 
-  // ***** [22nd 8 ops] [0xa8 - 0xaf] ends  *****
+  // ***** [22nd 8 ops] [0xa8 - 0xaf] ends *****
 
-  // ***** [23rd 8 ops] [0xb0 - 0xb7] starts  *****
+  // ***** [23rd 8 ops] [0xb0 - 0xb7] starts *****
 
   private OR_A_B() {
     return this.OR_R_R('a', 'b');
@@ -2764,9 +3034,9 @@ class Z80 {
     return this.OR_R_R('a', 'a');
   }
 
-  // ***** [23rd 8 ops] [0xb0 - 0xb7] ends  *****
+  // ***** [23rd 8 ops] [0xb0 - 0xb7] ends *****
 
-  // ***** [24th 8 ops] [0xb8 - 0xbf] starts  *****
+  // ***** [24th 8 ops] [0xb8 - 0xbf] starts *****
 
   private CP_A_B() {
     return this.CP_R_R('a', 'b');
@@ -2800,9 +3070,9 @@ class Z80 {
     return this.CP_R_R('a', 'a');
   }
 
-  // ***** [24th 8 ops] [0xb8 - 0xbf] ends  *****
+  // ***** [24th 8 ops] [0xb8 - 0xbf] ends *****
 
-  // ***** [25th 8 ops] [0xc0 - 0xc7] starts  *****
+  // ***** [25th 8 ops] [0xc0 - 0xc7] starts *****
 
   private RET_NZ() {
     if (this.zeroFlag) {
@@ -2865,9 +3135,9 @@ class Z80 {
     return this.RST_n(0);
   }
 
-  // ***** [25th 8 ops] [0xc0 - 0xc7] ends  *****
+  // ***** [25th 8 ops] [0xc0 - 0xc7] ends *****
 
-  // ***** [26th 8 ops] [0xc8 - 0xcf] starts  *****
+  // ***** [26th 8 ops] [0xc8 - 0xcf] starts *****
 
   private RET_Z() {
     if (this.zeroFlag) {
@@ -2950,9 +3220,9 @@ class Z80 {
     return this.RST_n(1);
   }
 
-  // ***** [26th 8 ops] [0xc8 - 0xcf] ends  *****
+  // ***** [26th 8 ops] [0xc8 - 0xcf] ends *****
 
-  // ***** [27th 8 ops] [0xd0 - 0xd7] starts  *****
+  // ***** [27th 8 ops] [0xd0 - 0xd7] starts *****
 
   private RET_NC() {
     if (this.carryFlag) {
@@ -3011,9 +3281,9 @@ class Z80 {
     return this.RST_n(2);
   }
 
-  // ***** [27th 8 ops] [0xd0 - 0xd7] ends  *****
+  // ***** [27th 8 ops] [0xd0 - 0xd7] ends *****
 
-  // ***** [28th 8 ops] [0xd8 - 0xdf] starts  *****
+  // ***** [28th 8 ops] [0xd8 - 0xdf] starts *****
 
   private RET_C() {
     if (this.carryFlag) {
@@ -3071,9 +3341,9 @@ class Z80 {
     return this.RST_n(3);
   }
 
-  // ***** [28th 8 ops] [0xd8 - 0xdf] ends  *****
+  // ***** [28th 8 ops] [0xd8 - 0xdf] ends *****
 
-  // ***** [29th 8 ops] [0xe0 - 0xe7] starts  *****
+  // ***** [29th 8 ops] [0xe0 - 0xe7] starts *****
 
   private LD_d8a_A() {
     return this.LD_d8a_R('a');
@@ -3114,9 +3384,9 @@ class Z80 {
     return this.RST_n(4);
   }
 
-  // ***** [29th 8 ops] [0xe0 - 0xe7] ends  *****
+  // ***** [29th 8 ops] [0xe0 - 0xe7] ends *****
 
-  // ***** [30th 8 ops] [0xe8 - 0xef] starts  *****
+  // ***** [30th 8 ops] [0xe8 - 0xef] starts *****
 
   private ADD_SP_s8() {
     const notParsed8Bit = this.readFromPcAndIncPc();
@@ -3178,9 +3448,9 @@ class Z80 {
     return this.RST_n(5);
   }
 
-  // ***** [30th 8 ops] [0xe8 - 0xef] ends  *****
+  // ***** [30th 8 ops] [0xe8 - 0xef] ends *****
 
-  // ***** [31st 8 ops] [0xf0 - 0xf7] starts  *****
+  // ***** [31st 8 ops] [0xf0 - 0xf7] starts *****
 
   private LD_A_d8a() {
     return this.LD_R_d8a('a');
@@ -3223,9 +3493,9 @@ class Z80 {
     return this.RST_n(6);
   }
 
-  // ***** [31st 8 ops] [0xf0 - 0xf7] ends  *****
+  // ***** [31st 8 ops] [0xf0 - 0xf7] ends *****
 
-  // ***** [32nd 8 ops] [0xf8 - 0xff] starts  *****
+  // ***** [32nd 8 ops] [0xf8 - 0xff] starts *****
 
   private LD_HL_SPPlusD8() {
     const notParsed8Bit = this.readFromPcAndIncPc();
@@ -3301,11 +3571,11 @@ class Z80 {
     return this.RST_n(7);
   }
 
-  // ***** [32nd 8 ops] [0xf8 - 0xff] ends  *****
+  // ***** [32nd 8 ops] [0xf8 - 0xff] ends *****
 
   // ***** CB prefixed op set starts *****
 
-  // ***** [1st 8 ops] [0x00 - 0x07] starts  *****
+  // ***** [1st 8 ops] [0x00 - 0x07] starts *****
 
   private RLC_B() {
     return this.RLC_R('b');
@@ -3339,9 +3609,9 @@ class Z80 {
     return this.RLC_R('a');
   }
 
-  // ***** [1st 8 ops] [0x00 - 0x07] ends  *****
+  // ***** [1st 8 ops] [0x00 - 0x07] ends *****
 
-  // ***** [2nd 8 ops] [0x08 - 0x0f] starts  *****
+  // ***** [2nd 8 ops] [0x08 - 0x0f] starts *****
 
   private RRC_B() {
     return this.RRC_R('b');
@@ -3375,9 +3645,9 @@ class Z80 {
     return this.RRC_R('a');
   }
 
-  // ***** [2nd 8 ops] [0x08 - 0x0f] ends  *****
+  // ***** [2nd 8 ops] [0x08 - 0x0f] ends *****
 
-  // ***** [3rd 8 ops] [0x10 - 0x17] starts  *****
+  // ***** [3rd 8 ops] [0x10 - 0x17] starts *****
 
   private RL_B() {
     return this.RL_R('b');
@@ -3411,9 +3681,9 @@ class Z80 {
     return this.RL_R('a');
   }
 
-  // ***** [3rd 8 ops] [0x10 - 0x17] ends  *****
+  // ***** [3rd 8 ops] [0x10 - 0x17] ends *****
 
-  // ***** [4th 8 ops] [0x18 - 0x1f] starts  *****
+  // ***** [4th 8 ops] [0x18 - 0x1f] starts *****
 
   private RR_B() {
     return this.RR_R('b');
@@ -3447,9 +3717,9 @@ class Z80 {
     return this.RR_R('a');
   }
 
-  // ***** [4th 8 ops] [0x18 - 0x1f] ends  *****
+  // ***** [4th 8 ops] [0x18 - 0x1f] ends *****
 
-  // ***** [5th 8 ops] [0x20 - 0x27] starts  *****
+  // ***** [5th 8 ops] [0x20 - 0x27] starts *****
 
   private SLA_B() {
     return this.SLA_R('b');
@@ -3483,9 +3753,9 @@ class Z80 {
     return this.SLA_R('a');
   }
 
-  // ***** [5th 8 ops] [0x20 - 0x27] ends  *****
+  // ***** [5th 8 ops] [0x20 - 0x27] ends *****
 
-  // ***** [6th 8 ops] [0x28 - 0x2f] starts  *****
+  // ***** [6th 8 ops] [0x28 - 0x2f] starts *****
 
   private SRA_B() {
     return this.SLA_R('b');
@@ -3519,9 +3789,9 @@ class Z80 {
     return this.SLA_R('a');
   }
 
-  // ***** [6th 8 ops] [0x28 - 0x2f] ends  *****
+  // ***** [6th 8 ops] [0x28 - 0x2f] ends *****
 
-  // ***** [7th 8 ops] [0x30 - 0x37] starts  *****
+  // ***** [7th 8 ops] [0x30 - 0x37] starts *****
 
   private SWAP_B() {
     return this.SLA_R('b');
@@ -3555,9 +3825,9 @@ class Z80 {
     return this.SLA_R('a');
   }
 
-  // ***** [7th 8 ops] [0x30 - 0x37] ends  *****
+  // ***** [7th 8 ops] [0x30 - 0x37] ends *****
 
-  // ***** [8th 8 ops] [0x38 - 0x3f] starts  *****
+  // ***** [8th 8 ops] [0x38 - 0x3f] starts *****
 
   private SRL_B() {
     return this.SLA_R('b');
@@ -3591,9 +3861,9 @@ class Z80 {
     return this.SLA_R('a');
   }
 
-  // ***** [8th 8 ops] [0x38 - 0x3f] ends  *****
+  // ***** [8th 8 ops] [0x38 - 0x3f] ends *****
 
-  // ***** [9th 8 ops] [0x40 - 0x47] starts  *****
+  // ***** [9th 8 ops] [0x40 - 0x47] starts *****
 
   private BIT_0_B() {
     return this.BIT_n_R(0, 'b');
@@ -3627,9 +3897,9 @@ class Z80 {
     return this.BIT_n_R(0, 'a');
   }
 
-  // ***** [9th 8 ops] [0x40 - 0x47] ends  *****
+  // ***** [9th 8 ops] [0x40 - 0x47] ends *****
 
-  // ***** [10th 8 ops] [0x48 - 0x4f] ends  *****
+  // ***** [10th 8 ops] [0x48 - 0x4f] ends *****
 
   private BIT_1_B() {
     return this.BIT_n_R(1, 'b');
@@ -3663,9 +3933,9 @@ class Z80 {
     return this.BIT_n_R(1, 'a');
   }
 
-  // ***** [10th 8 ops] [0x48 - 0x4f] ends  *****
+  // ***** [10th 8 ops] [0x48 - 0x4f] ends *****
 
-  // ***** [11th 8 ops] [0x50 - 0x57] starts  *****
+  // ***** [11th 8 ops] [0x50 - 0x57] starts *****
 
   private BIT_2_B() {
     return this.BIT_n_R(2, 'b');
@@ -3699,9 +3969,9 @@ class Z80 {
     return this.BIT_n_R(2, 'a');
   }
 
-  // ***** [11th 8 ops] [0x50 - 0x57] ends  *****
+  // ***** [11th 8 ops] [0x50 - 0x57] ends *****
 
-  // ***** [12th 8 ops] [0x58 - 0x5f] starts  *****
+  // ***** [12th 8 ops] [0x58 - 0x5f] starts *****
 
   private BIT_3_B() {
     return this.BIT_n_R(3, 'b');
@@ -3735,9 +4005,9 @@ class Z80 {
     return this.BIT_n_R(3, 'a');
   }
 
-  // ***** [12th 8 ops] [0x58 - 0x5f] ends  *****
+  // ***** [12th 8 ops] [0x58 - 0x5f] ends *****
 
-  // ***** [13th 8 ops] [0x60 - 0x67] starts  *****
+  // ***** [13th 8 ops] [0x60 - 0x67] starts *****
 
   private BIT_4_B() {
     return this.BIT_n_R(4, 'b');
@@ -3771,9 +4041,9 @@ class Z80 {
     return this.BIT_n_R(4, 'a');
   }
 
-  // ***** [13th 8 ops] [0x60 - 0x67] ends  *****
+  // ***** [13th 8 ops] [0x60 - 0x67] ends *****
 
-  // ***** [14th 8 ops] [0x68 - 0x6f] starts  *****
+  // ***** [14th 8 ops] [0x68 - 0x6f] starts *****
 
   private BIT_5_B() {
     return this.BIT_n_R(5, 'b');
@@ -3807,9 +4077,9 @@ class Z80 {
     return this.BIT_n_R(5, 'a');
   }
 
-  // ***** [14th 8 ops] [0x68 - 0x6f] ends  *****
+  // ***** [14th 8 ops] [0x68 - 0x6f] ends *****
 
-  // ***** [15th 8 ops] [0x70 - 0x77] starts  *****
+  // ***** [15th 8 ops] [0x70 - 0x77] starts *****
 
   private BIT_6_B() {
     return this.BIT_n_R(6, 'b');
@@ -3843,9 +4113,9 @@ class Z80 {
     return this.BIT_n_R(6, 'a');
   }
 
-  // ***** [15th 8 ops] [0x70 - 0x77] ends  *****
+  // ***** [15th 8 ops] [0x70 - 0x77] ends *****
 
-  // ***** [16th 8 ops] [0x78 - 0x7f] starts  *****
+  // ***** [16th 8 ops] [0x78 - 0x7f] starts *****
 
   private BIT_7_B() {
     return this.BIT_n_R(7, 'b');
@@ -3879,7 +4149,583 @@ class Z80 {
     return this.BIT_n_R(7, 'a');
   }
 
-  // ***** [16th 8 ops] [0x78 - 0x7f] ends  *****
+  // ***** [16th 8 ops] [0x78 - 0x7f] ends *****
+
+  // ***** [17th 8 ops] [0x80 - 0x87] starts *****
+
+  private RES_0_B() {
+    return this.RES_n_R(0, 'b');
+  }
+
+  private RES_0_C() {
+    return this.RES_n_R(0, 'c');
+  }
+
+  private RES_0_D() {
+    return this.RES_n_R(0, 'd');
+  }
+
+  private RES_0_E() {
+    return this.RES_n_R(0, 'e');
+  }
+
+  private RES_0_H() {
+    return this.RES_n_R(0, 'h');
+  }
+
+  private RES_0_L() {
+    return this.RES_n_R(0, 'l');
+  }
+
+  private RES_0_HLa() {
+    return this.RES_n_RRa(0, 'h', 'l');
+  }
+
+  private RES_0_A() {
+    return this.RES_n_R(0, 'a');
+  }
+
+  // ***** [17th 8 ops] [0x80 - 0x87] ends *****
+
+  // ***** [18th 8 ops] [0x88 - 0x8f] starts *****
+
+  private RES_1_B() {
+    return this.RES_n_R(1, 'b');
+  }
+
+  private RES_1_C() {
+    return this.RES_n_R(1, 'c');
+  }
+
+  private RES_1_D() {
+    return this.RES_n_R(1, 'd');
+  }
+
+  private RES_1_E() {
+    return this.RES_n_R(1, 'e');
+  }
+
+  private RES_1_H() {
+    return this.RES_n_R(1, 'h');
+  }
+
+  private RES_1_L() {
+    return this.RES_n_R(1, 'l');
+  }
+
+  private RES_1_HLa() {
+    return this.RES_n_RRa(1, 'h', 'l');
+  }
+
+  private RES_1_A() {
+    return this.RES_n_R(1, 'a');
+  }
+
+  // ***** [18th 8 ops] [0x88 - 0x8f] ends *****
+
+  // ***** [19th 8 ops] [0x90 - 0x97] starts *****
+
+  private RES_2_B() {
+    return this.RES_n_R(2, 'b');
+  }
+
+  private RES_2_C() {
+    return this.RES_n_R(2, 'c');
+  }
+
+  private RES_2_D() {
+    return this.RES_n_R(2, 'd');
+  }
+
+  private RES_2_E() {
+    return this.RES_n_R(2, 'e');
+  }
+
+  private RES_2_H() {
+    return this.RES_n_R(2, 'h');
+  }
+
+  private RES_2_L() {
+    return this.RES_n_R(2, 'l');
+  }
+
+  private RES_2_HLa() {
+    return this.RES_n_RRa(2, 'h', 'l');
+  }
+
+  private RES_2_A() {
+    return this.RES_n_R(2, 'a');
+  }
+
+  // ***** [19th 8 ops] [0x90 - 0x97] ends *****
+
+  // ***** [20th 8 ops] [0x98 - 0x9f] starts *****
+
+  private RES_3_B() {
+    return this.RES_n_R(3, 'b');
+  }
+
+  private RES_3_C() {
+    return this.RES_n_R(3, 'c');
+  }
+
+  private RES_3_D() {
+    return this.RES_n_R(3, 'd');
+  }
+
+  private RES_3_E() {
+    return this.RES_n_R(3, 'e');
+  }
+
+  private RES_3_H() {
+    return this.RES_n_R(3, 'h');
+  }
+
+  private RES_3_L() {
+    return this.RES_n_R(3, 'l');
+  }
+
+  private RES_3_HLa() {
+    return this.RES_n_RRa(3, 'h', 'l');
+  }
+
+  private RES_3_A() {
+    return this.RES_n_R(3, 'a');
+  }
+
+  // ***** [20th 8 ops] [0x98 - 0x9f] ends *****
+
+  // ***** [21th 8 ops] [0xa0 - 0xa7] starts *****
+
+  private RES_4_B() {
+    return this.RES_n_R(4, 'b');
+  }
+
+  private RES_4_C() {
+    return this.RES_n_R(4, 'c');
+  }
+
+  private RES_4_D() {
+    return this.RES_n_R(4, 'd');
+  }
+
+  private RES_4_E() {
+    return this.RES_n_R(4, 'e');
+  }
+
+  private RES_4_H() {
+    return this.RES_n_R(4, 'h');
+  }
+
+  private RES_4_L() {
+    return this.RES_n_R(4, 'l');
+  }
+
+  private RES_4_HLa() {
+    return this.RES_n_RRa(4, 'h', 'l');
+  }
+
+  private RES_4_A() {
+    return this.RES_n_R(4, 'a');
+  }
+
+  // ***** [21th 8 ops] [0xa0 - 0xa7] ends *****
+
+  // ***** [22th 8 ops] [0xa8 - 0xaf] starts *****
+
+  private RES_5_B() {
+    return this.RES_n_R(5, 'b');
+  }
+
+  private RES_5_C() {
+    return this.RES_n_R(5, 'c');
+  }
+
+  private RES_5_D() {
+    return this.RES_n_R(5, 'd');
+  }
+
+  private RES_5_E() {
+    return this.RES_n_R(5, 'e');
+  }
+
+  private RES_5_H() {
+    return this.RES_n_R(5, 'h');
+  }
+
+  private RES_5_L() {
+    return this.RES_n_R(5, 'l');
+  }
+
+  private RES_5_HLa() {
+    return this.RES_n_RRa(5, 'h', 'l');
+  }
+
+  private RES_5_A() {
+    return this.RES_n_R(5, 'a');
+  }
+
+  // ***** [22th 8 ops] [0xa8 - 0xaf] ends *****
+
+  // ***** [23th 8 ops] [0xb0 - 0xb7] starts *****
+
+  private RES_6_B() {
+    return this.RES_n_R(6, 'b');
+  }
+
+  private RES_6_C() {
+    return this.RES_n_R(6, 'c');
+  }
+
+  private RES_6_D() {
+    return this.RES_n_R(6, 'd');
+  }
+
+  private RES_6_E() {
+    return this.RES_n_R(6, 'e');
+  }
+
+  private RES_6_H() {
+    return this.RES_n_R(6, 'h');
+  }
+
+  private RES_6_L() {
+    return this.RES_n_R(6, 'l');
+  }
+
+  private RES_6_HLa() {
+    return this.RES_n_RRa(6, 'h', 'l');
+  }
+
+  private RES_6_A() {
+    return this.RES_n_R(6, 'a');
+  }
+
+  // ***** [23th 8 ops] [0xb0 - 0xb7] ends *****
+
+  // ***** [24th 8 ops] [0xb8 - 0xbf] starts *****
+
+  private RES_7_B() {
+    return this.RES_n_R(7, 'b');
+  }
+
+  private RES_7_C() {
+    return this.RES_n_R(7, 'c');
+  }
+
+  private RES_7_D() {
+    return this.RES_n_R(7, 'd');
+  }
+
+  private RES_7_E() {
+    return this.RES_n_R(7, 'e');
+  }
+
+  private RES_7_H() {
+    return this.RES_n_R(7, 'h');
+  }
+
+  private RES_7_L() {
+    return this.RES_n_R(7, 'l');
+  }
+
+  private RES_7_HLa() {
+    return this.RES_n_RRa(7, 'h', 'l');
+  }
+
+  private RES_7_A() {
+    return this.RES_n_R(7, 'a');
+  }
+
+  // ***** [24th 8 ops] [0xb8 - 0xbf] ends *****
+
+  // ***** [25th 8 ops] [0xc7 - 0xc0] starts *****
+
+  private SET_0_B() {
+    return this.SET_n_R(0, 'b');
+  }
+
+  private SET_0_C() {
+    return this.SET_n_R(0, 'c');
+  }
+
+  private SET_0_D() {
+    return this.SET_n_R(0, 'd');
+  }
+
+  private SET_0_E() {
+    return this.SET_n_R(0, 'e');
+  }
+
+  private SET_0_H() {
+    return this.SET_n_R(0, 'h');
+  }
+
+  private SET_0_L() {
+    return this.SET_n_R(0, 'l');
+  }
+
+  private SET_0_HLa() {
+    return this.SET_n_RRa(0, 'h', 'l');
+  }
+
+  private SET_0_A() {
+    return this.SET_n_R(0, 'a');
+  }
+
+  // ***** [25th 8 ops] [0xc0 - 0xc0] ends *****
+
+  // ***** [26th 8 ops] [0xcf - 0xc8] starts *****
+
+  private SET_1_B() {
+    return this.SET_n_R(1, 'b');
+  }
+
+  private SET_1_C() {
+    return this.SET_n_R(1, 'c');
+  }
+
+  private SET_1_D() {
+    return this.SET_n_R(1, 'd');
+  }
+
+  private SET_1_E() {
+    return this.SET_n_R(1, 'e');
+  }
+
+  private SET_1_H() {
+    return this.SET_n_R(1, 'h');
+  }
+
+  private SET_1_L() {
+    return this.SET_n_R(1, 'l');
+  }
+
+  private SET_1_HLa() {
+    return this.SET_n_RRa(1, 'h', 'l');
+  }
+
+  private SET_1_A() {
+    return this.SET_n_R(1, 'a');
+  }
+
+  // ***** [26th 8 ops] [0xc8 - 0xc8] ends *****
+
+  // ***** [27th 8 ops] [0xd7 - 0xd0] starts *****
+
+  private SET_2_B() {
+    return this.SET_n_R(2, 'b');
+  }
+
+  private SET_2_C() {
+    return this.SET_n_R(2, 'c');
+  }
+
+  private SET_2_D() {
+    return this.SET_n_R(2, 'd');
+  }
+
+  private SET_2_E() {
+    return this.SET_n_R(2, 'e');
+  }
+
+  private SET_2_H() {
+    return this.SET_n_R(2, 'h');
+  }
+
+  private SET_2_L() {
+    return this.SET_n_R(2, 'l');
+  }
+
+  private SET_2_HLa() {
+    return this.SET_n_RRa(2, 'h', 'l');
+  }
+
+  private SET_2_A() {
+    return this.SET_n_R(2, 'a');
+  }
+
+  // ***** [27th 8 ops] [0xd0 - 0xd0] ends *****
+
+  // ***** [28th 8 ops] [0xdf - 0xd8] starts *****
+
+  private SET_3_B() {
+    return this.SET_n_R(3, 'b');
+  }
+
+  private SET_3_C() {
+    return this.SET_n_R(3, 'c');
+  }
+
+  private SET_3_D() {
+    return this.SET_n_R(3, 'd');
+  }
+
+  private SET_3_E() {
+    return this.SET_n_R(3, 'e');
+  }
+
+  private SET_3_H() {
+    return this.SET_n_R(3, 'h');
+  }
+
+  private SET_3_L() {
+    return this.SET_n_R(3, 'l');
+  }
+
+  private SET_3_HLa() {
+    return this.SET_n_RRa(3, 'h', 'l');
+  }
+
+  private SET_3_A() {
+    return this.SET_n_R(3, 'a');
+  }
+
+  // ***** [28th 8 ops] [0xd8 - 0xd8] ends *****
+
+  // ***** [29th 8 ops] [0xe7 - 0xe0] starts *****
+
+  private SET_4_B() {
+    return this.SET_n_R(4, 'b');
+  }
+
+  private SET_4_C() {
+    return this.SET_n_R(4, 'c');
+  }
+
+  private SET_4_D() {
+    return this.SET_n_R(4, 'd');
+  }
+
+  private SET_4_E() {
+    return this.SET_n_R(4, 'e');
+  }
+
+  private SET_4_H() {
+    return this.SET_n_R(4, 'h');
+  }
+
+  private SET_4_L() {
+    return this.SET_n_R(4, 'l');
+  }
+
+  private SET_4_HLa() {
+    return this.SET_n_RRa(4, 'h', 'l');
+  }
+
+  private SET_4_A() {
+    return this.SET_n_R(4, 'a');
+  }
+
+  // ***** [29th 8 ops] [0xe0 - 0xe0] ends *****
+
+  // ***** [30th 8 ops] [0xef - 0xe8] starts *****
+
+  private SET_5_B() {
+    return this.SET_n_R(5, 'b');
+  }
+
+  private SET_5_C() {
+    return this.SET_n_R(5, 'c');
+  }
+
+  private SET_5_D() {
+    return this.SET_n_R(5, 'd');
+  }
+
+  private SET_5_E() {
+    return this.SET_n_R(5, 'e');
+  }
+
+  private SET_5_H() {
+    return this.SET_n_R(5, 'h');
+  }
+
+  private SET_5_L() {
+    return this.SET_n_R(5, 'l');
+  }
+
+  private SET_5_HLa() {
+    return this.SET_n_RRa(5, 'h', 'l');
+  }
+
+  private SET_5_A() {
+    return this.SET_n_R(5, 'a');
+  }
+
+  // ***** [30th 8 ops] [0xe8 - 0xe8] ends *****
+
+  // ***** [31th 8 ops] [0xf7 - 0xf0] starts *****
+
+  private SET_6_B() {
+    return this.SET_n_R(6, 'b');
+  }
+
+  private SET_6_C() {
+    return this.SET_n_R(6, 'c');
+  }
+
+  private SET_6_D() {
+    return this.SET_n_R(6, 'd');
+  }
+
+  private SET_6_E() {
+    return this.SET_n_R(6, 'e');
+  }
+
+  private SET_6_H() {
+    return this.SET_n_R(6, 'h');
+  }
+
+  private SET_6_L() {
+    return this.SET_n_R(6, 'l');
+  }
+
+  private SET_6_HLa() {
+    return this.SET_n_RRa(6, 'h', 'l');
+  }
+
+  private SET_6_A() {
+    return this.SET_n_R(6, 'a');
+  }
+
+  // ***** [31th 8 ops] [0xf0 - 0xf0] ends *****
+
+  // ***** [32th 8 ops] [0xff - 0xf8] starts *****
+
+  private SET_7_B() {
+    return this.SET_n_R(7, 'b');
+  }
+
+  private SET_7_C() {
+    return this.SET_n_R(7, 'c');
+  }
+
+  private SET_7_D() {
+    return this.SET_n_R(7, 'd');
+  }
+
+  private SET_7_E() {
+    return this.SET_n_R(7, 'e');
+  }
+
+  private SET_7_H() {
+    return this.SET_n_R(7, 'h');
+  }
+
+  private SET_7_L() {
+    return this.SET_n_R(7, 'l');
+  }
+
+  private SET_7_HLa() {
+    return this.SET_n_RRa(7, 'h', 'l');
+  }
+
+  private SET_7_A() {
+    return this.SET_n_R(7, 'a');
+  }
+
+  // ***** [32th 8 ops] [0xf8 - 0xf8] ends *****
 }
 
 function shouldSetZeroFlag(result: number) {
