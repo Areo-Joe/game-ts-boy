@@ -23,6 +23,7 @@ export class GPU {
   #clock = 0;
 
   constructor(width: number, height: number, canvas?: HTMLCanvasElement) {
+    return;
     this.#width = width;
     this.#height = height;
     this.#canvas = canvas ?? createCanvas(width, height);

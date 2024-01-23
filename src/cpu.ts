@@ -19,8 +19,10 @@ import {
   getBit,
 } from './utils';
 
+const logs: string[] = [];
+
 // GB's cpu is a modified Z80, so...
-class Z80 {
+export class Z80 {
   #memory: MMU;
   #timer: GBTimer;
   #gpu: GPU;
@@ -704,24 +706,67 @@ class Z80 {
     this.SET_7_A,
   ];
 
+  init() {
+    this.#registers.pc = 0x100;
+    this.#registers.a = 1;
+    this.#registers.f = 0xB0;
+    this.#registers.b = 0x00;
+    this.#registers.c = 0x13;
+    this.#registers.d = 0x00;
+    this.#registers.e = 0xD8;
+    this.#registers.h = 0x01;
+    this.#registers.l = 0x4d;
+    this.#registers.sp = 0xFFFE;
+  }
+
   run() {
     while (true) {
+      logs.push(this.logLine);
+      if (logs.length === 1258894) {
+        Bun.write('./log.txt', logs.join('\n'));
+        break;
+      }
       const opcode = this.readFromPcAndIncPc();
-      this.#opMap[opcode]();
-      this.#gpu.step(this.#registers.t);
-      this.#timer.inc(this.#registers.m);
-      this.#registers.t = this.#registers.m = 0;
-      this.#clock.t += this.#registers.t;
-      this.#clock.m += this.#registers.m;
+      const func = this.#opMap[opcode];
+      func.call(this);
+      // if (this.#memory.readByte(0xff02) === 0x81) {
+      //   console.log("sth went wrong", this.#memory.readByte(0xff01))
+      //   this.#memory.writeByte(0xff02, 0);
+      // }
+    }
+  }
+
+  get logLine() {
+    const singles = ('afbcdehl'.split('') as Array<Z80SingleByteRegisters>)
+      .map((r) => `${r.toUpperCase()}: ${hexStr(this.#registers[r], 2)}`)
+      .join(' ');
+    return `${singles} SP: ${hexStr(this.#registers.sp, 4)} PC: 00:${hexStr(
+      this.#registers.pc,
+      4
+    )} (${[0, 1, 2, 3]
+      .map((num) => hexStr(this.#memory.readByte(this.#registers.pc + num), 2))
+      .join(', ')})`;
+
+    function hexStr(num: number, digit: number) {
+      let str = num.toString(16).toUpperCase();
+      if (str.length < digit) {
+        str =
+          Array(digit - str.length)
+            .fill(0)
+            .join('') + str;
+      }
+      return str;
     }
   }
 
   reset() {
-    (['register', 'clock'] as Array<keyof this>).forEach((resetKey) => {
-      Object.keys(this[resetKey] as Record<string, number>).forEach(
-        (key) => ((this[resetKey] as Record<string, number>)[key] = 0)
-      );
-    });
+    Object.keys(this.#registers).forEach((r) => (this.#registers[r] = 0));
+    Object.keys(this.#clock).forEach((r) => (this.#registers[r] = 0));
+    // (['#registers', '#clock'] as Array<keyof this>).forEach((resetKey) => {
+    //   Object.keys(this[resetKey] as Record<string, number>).forEach(
+    //     (key) => ((this[resetKey] as Record<string, number>)[key] = 0)
+    //   );
+    // });
   }
 
   clearFlag() {
@@ -1727,10 +1772,22 @@ class Z80 {
   }
 
   private LD_R_d8a(targetRegister: Z80SingleByteRegisters) {
+    console.log(
+      'beforeregister',
+      targetRegister,
+      this.#registers[targetRegister]
+    );
     const halfAddr = this.readFromPcAndIncPc();
+    console.log('half addr', halfAddr);
     const addr = addWithDoubleByte(0xff00, halfAddr);
+    console.log('addr', halfAddr);
     const val = this.#memory.readByte(addr);
     this.#registers[targetRegister] = val;
+    console.log(
+      'beforeregister',
+      targetRegister,
+      this.#registers[targetRegister]
+    );
 
     return 3 as const;
   }
@@ -1739,6 +1796,7 @@ class Z80 {
     targetRegister: Z80SingleByteRegisters,
     sourceRegister: Z80SingleByteRegisters
   ) {
+    console.log('called');
     const sourceHalfAddr = this.#registers[sourceRegister];
     const sourceAddr = addWithDoubleByte(0xff00, sourceHalfAddr);
     const val = this.#memory.readByte(sourceAddr);
@@ -2739,7 +2797,7 @@ class Z80 {
   }
 
   private HALT() {
-    throw new Error('Unimplemented! Need to figure out its meaning!');
+    // throw new Error('Unimplemented! Need to figure out its meaning!');
   }
 
   private LD_HLa_A() {

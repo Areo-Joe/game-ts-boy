@@ -4,7 +4,7 @@ export abstract class GBTimer {
   abstract inc(mClock: number): void;
 }
 
-class GBTimerImpl extends GBTimer {
+export class GBTimerImpl extends GBTimer {
   #tick = 0;
   #registers = {
     divider: 0, // 1/16 of base speed
