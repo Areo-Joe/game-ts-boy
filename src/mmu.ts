@@ -3,6 +3,8 @@ import { MMU } from './cpu';
 const writeAddrSet = new Set<number>();
 const readAddrSet = new Set<number>();
 
+let testString = '';
+
 export class GameBoyMMU extends MMU {
   // 0x0000 - 0x3fff
   #fixedCartridge = new Uint8Array(0x4000);
@@ -70,47 +72,18 @@ export class GameBoyMMU extends MMU {
   }
 
   readByte(addr: number): number {
-    if (addr >= 0xff00) {
-      console.log(addr);
-      const prev = readAddrSet.size;
-      readAddrSet.add(addr);
-      const current = readAddrSet.size;
-      if (current === prev) {
-        console.log(
-          'read',
-          [...readAddrSet].map((x) => '0x' + x.toString(16)).join(', ')
-        );
-      }
-    }
     let [memoryIndex, refinedAddr] = this.transformAddr(addr);
 
     return this.#memory[memoryIndex][refinedAddr];
   }
   readDoubleByte(addr: number): number {
-    if (addr >= 0xff00) {
-      const prev = readAddrSet.size;
-      readAddrSet.add(addr);
-      const current = readAddrSet.size;
-      if (current === prev) {
-        console.log(
-          'read',
-          [...readAddrSet].map((x) => '0x' + x.toString(16)).join(', ')
-        );
-      }
-    }
     return this.readByte(addr) + (this.readByte(addr + 1) << 8);
   }
   writeByte(addr: number, val: number): void {
-    if (addr >= 0xff00) {
-      const prev = writeAddrSet.size;
-      writeAddrSet.add(addr);
-      const current = writeAddrSet.size;
-      if (current === prev) {
-        // console.log(
-        //   'write',
-        //   [...writeAddrSet].map((x) => '0x' + x.toString(16)).join(', ')
-        // );
-      }
+    if (addr === 0xff01) {
+      testString += String.fromCharCode(val);
+      console.log(testString);
+      console.log('\n------\n');
     }
     let [memoryIndex, refinedAddr] = this.transformAddr(addr);
 

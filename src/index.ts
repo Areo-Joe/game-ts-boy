@@ -11,7 +11,6 @@ async function readRom(name: string) {
 
 async function runTestRom(cpu: Z80, romFilePath: string) {
   const buffer = readRom(romFilePath);
-  cpu.init();
   mmu.loadRom(await buffer);
   cpu.run();
 }

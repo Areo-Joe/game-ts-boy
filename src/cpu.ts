@@ -19,8 +19,6 @@ import {
   getBit,
 } from './utils';
 
-const logs: string[] = [];
-
 // GB's cpu is a modified Z80, so...
 export class Z80 {
   #memory: MMU;
@@ -706,33 +704,25 @@ export class Z80 {
     this.SET_7_A,
   ];
 
+  // todo: maybe it is done by bios
   init() {
     this.#registers.pc = 0x100;
     this.#registers.a = 1;
-    this.#registers.f = 0xB0;
+    this.#registers.f = 0xb0;
     this.#registers.b = 0x00;
     this.#registers.c = 0x13;
     this.#registers.d = 0x00;
-    this.#registers.e = 0xD8;
+    this.#registers.e = 0xd8;
     this.#registers.h = 0x01;
     this.#registers.l = 0x4d;
-    this.#registers.sp = 0xFFFE;
+    this.#registers.sp = 0xfffe;
   }
 
   run() {
     while (true) {
-      logs.push(this.logLine);
-      if (logs.length === 1258894) {
-        Bun.write('./log.txt', logs.join('\n'));
-        break;
-      }
       const opcode = this.readFromPcAndIncPc();
       const func = this.#opMap[opcode];
       func.call(this);
-      // if (this.#memory.readByte(0xff02) === 0x81) {
-      //   console.log("sth went wrong", this.#memory.readByte(0xff01))
-      //   this.#memory.writeByte(0xff02, 0);
-      // }
     }
   }
 
@@ -745,7 +735,7 @@ export class Z80 {
       4
     )} (${[0, 1, 2, 3]
       .map((num) => hexStr(this.#memory.readByte(this.#registers.pc + num), 2))
-      .join(', ')})`;
+      .join(' ')})`;
 
     function hexStr(num: number, digit: number) {
       let str = num.toString(16).toUpperCase();
@@ -760,13 +750,13 @@ export class Z80 {
   }
 
   reset() {
-    Object.keys(this.#registers).forEach((r) => (this.#registers[r] = 0));
-    Object.keys(this.#clock).forEach((r) => (this.#registers[r] = 0));
-    // (['#registers', '#clock'] as Array<keyof this>).forEach((resetKey) => {
-    //   Object.keys(this[resetKey] as Record<string, number>).forEach(
-    //     (key) => ((this[resetKey] as Record<string, number>)[key] = 0)
-    //   );
-    // });
+    const registers = this.#registers;
+    (
+      'a b c d e f h l pc sp m t'.split(' ') as (keyof typeof registers)[]
+    ).forEach((r) => (registers[r] = 0));
+
+    this.#clock.m = 0;
+    this.#clock.t = 0;
   }
 
   clearFlag() {
@@ -996,12 +986,8 @@ export class Z80 {
       result
     );
     this.substractionFlag = false;
-    this.halfCarryFlag = shouldSetHalfCarryFlag(
-      Operation.Add,
-      BitLength.DoubleByte,
-      target,
-      source
-    );
+    // yeah 12 is confusingly correct
+    this.halfCarryFlag = shouldSetCarryFlag(Operation.Add, 12, target, source);
     this.carryFlag = shouldSetCarryFlag(
       Operation.Add,
       BitLength.DoubleByte,
@@ -1633,6 +1619,7 @@ export class Z80 {
     const val = this.readFromPcAndIncPc();
 
     const result = addWithOneByte(registerVal, val);
+    this.#registers[targetRegister] = result;
 
     this.zeroFlag = shouldSetZeroFlag(result);
     this.substractionFlag = false;
@@ -1675,6 +1662,8 @@ export class Z80 {
       this.carryFlag ? 1 : 0
     );
 
+    this.#registers[targetRegister] = result;
+
     return 2 as const;
   }
 
@@ -1683,6 +1672,7 @@ export class Z80 {
     const val = this.readFromPcAndIncPc();
 
     const result = minusWithOneByte(registerVal, val);
+    this.#registers[targetRegister] = result;
 
     this.zeroFlag = shouldSetZeroFlag(result);
     this.substractionFlag = true;
@@ -1772,22 +1762,10 @@ export class Z80 {
   }
 
   private LD_R_d8a(targetRegister: Z80SingleByteRegisters) {
-    console.log(
-      'beforeregister',
-      targetRegister,
-      this.#registers[targetRegister]
-    );
     const halfAddr = this.readFromPcAndIncPc();
-    console.log('half addr', halfAddr);
     const addr = addWithDoubleByte(0xff00, halfAddr);
-    console.log('addr', halfAddr);
     const val = this.#memory.readByte(addr);
     this.#registers[targetRegister] = val;
-    console.log(
-      'beforeregister',
-      targetRegister,
-      this.#registers[targetRegister]
-    );
 
     return 3 as const;
   }
@@ -2335,11 +2313,13 @@ export class Z80 {
 
   private RRA() {
     const carryFlag = this.carryFlag;
-    const firstByte = this.#registers.a & 1;
-    const movedRight = (this.#registers.a >> 1) & 0xff;
-    const registerResult =
-      (movedRight & ((1 << 7) - 1)) | ((carryFlag ? 1 : 0) << 7);
-    this.carryFlag = firstByte === 1 ? true : false;
+    const firstBit = getFirstBit(this.#registers.a);
+    const movedRight = (this.#registers.a >> 1) & 0b0111_1111;
+    const registerResult = movedRight + ((carryFlag ? 1 : 0) << 7);
+    this.carryFlag = firstBit === 1 ? true : false;
+    this.zeroFlag = false;
+    this.substractionFlag = false;
+    this.halfCarryFlag = false;
     this.#registers.a = registerResult;
 
     return 1 as const;
@@ -2389,12 +2369,25 @@ export class Z80 {
 
   private DAA() {
     let a = this.#registers.a;
-    if (this.halfCarryFlag || (a & 0xf) > 0x9) a += 6;
-    this.zeroFlag = false;
-    if (this.halfCarryFlag || a > 0x99) {
-      a += 0x60;
-      this.carryFlag = true;
+    if (this.substractionFlag) {
+      if (this.carryFlag) {
+        a = minusWithOneByte(a, 0x60);
+      }
+      if (this.halfCarryFlag) {
+        a = minusWithOneByte(a, 0x06);
+      }
+    } else {
+      if (this.carryFlag || a > 0x99) {
+        a = addWithOneByte(a, 0x60);
+        this.carryFlag = true;
+      }
+      if (this.halfCarryFlag || (a & 0x0f) > 0x09) {
+        a = addWithOneByte(a, 0x06);
+      }
     }
+
+    this.zeroFlag = shouldSetZeroFlag(a);
+    this.halfCarryFlag = false;
     this.#registers.a = a;
 
     return 1 as const;
@@ -3233,7 +3226,8 @@ export class Z80 {
 
   private CALL_OP_WITH_CB_PREFIX() {
     const opcode = this.readFromPcAndIncPc();
-    return this.#opMapCBPrefixed[opcode]();
+    const func = this.#opMapCBPrefixed[opcode];
+    return func.call(this);
   }
 
   private CALL_Z_d16_a() {
@@ -3257,7 +3251,7 @@ export class Z80 {
     this.DEC_doubleByteR('sp');
     this.#memory.writeByte(
       this.#registers.sp,
-      lowerByteOfDoubleByte(this.#registers.pc)
+      higherByteOfDoubleByte(this.#registers.pc)
     );
     this.DEC_doubleByteR('sp');
     this.#memory.writeByte(
@@ -3515,7 +3509,11 @@ export class Z80 {
   }
 
   private POP_AF() {
-    return this.POP_RR('a', 'f');
+    const lowerByte = this.readFromSpAndIncSp();
+    this.#registers.f = lowerByte & 0xf0;
+    this.#registers.a = this.readFromSpAndIncSp();
+
+    return 3 as const;
   }
 
   private LD_A_Ca() {
@@ -3888,35 +3886,35 @@ export class Z80 {
   // ***** [8th 8 ops] [0x38 - 0x3f] starts *****
 
   private SRL_B() {
-    return this.SLA_R('b');
+    return this.SRL_R('b');
   }
 
   private SRL_C() {
-    return this.SLA_R('c');
+    return this.SRL_R('c');
   }
 
   private SRL_D() {
-    return this.SLA_R('d');
+    return this.SRL_R('d');
   }
 
   private SRL_E() {
-    return this.SLA_R('e');
+    return this.SRL_R('e');
   }
 
   private SRL_H() {
-    return this.SLA_R('h');
+    return this.SRL_R('h');
   }
 
   private SRL_L() {
-    return this.SLA_R('l');
+    return this.SRL_R('l');
   }
 
   private SRL_HLa() {
-    return this.SLA_RRa('h', 'l');
+    return this.SRL_RRa('h', 'l');
   }
 
   private SRL_A() {
-    return this.SLA_R('a');
+    return this.SRL_R('a');
   }
 
   // ***** [8th 8 ops] [0x38 - 0x3f] ends *****
