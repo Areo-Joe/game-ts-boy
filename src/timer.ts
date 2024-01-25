@@ -1,69 +1,51 @@
-import { addWithOneByte } from './utils';
+import { MMU } from './cpu';
+import { DIV_ADDR, TIMA_ADDR, TMA_ADDR, TAC_ADDR } from './const';
 
 export abstract class GBTimer {
   abstract inc(mClock: number): void;
 }
 
 export class GBTimerImpl extends GBTimer {
-  #tick = 0;
-  #registers = {
-    divider: 0, // 1/16 of base speed
-    counter: 0, // programmable speed
-    modulo: 0, // reset val of counter when overflowed
-    control: 0, // control counter speed and if timer runs
-  };
+  #memory: MMU;
 
-  #accumulatedTime = {
-    tick: 0,
-    divider: 0,
-    counter: 0,
-  };
-
-  constructor(modulo: number, control: number) {
+  constructor(modulo: number, control: number, memory: MMU) {
     super();
-    this.#registers.modulo = modulo;
-    this.#registers.control = control;
-  }
-
-  get counterSpeedFactor() {
-    const firstTwoBit = this.#registers.control & 0b11;
-    switch (firstTwoBit) {
-      case 0b00:
-        return 64;
-      case 0b01:
-        return 1;
-      case 0b10:
-        return 4;
-      case 0b11:
-        return 16;
-      default:
-        throw new Error('unreachable!');
-    }
+    this.#memory = memory;
   }
 
   inc(mClock: number): void {
-    this.#accumulatedTime.tick += mClock;
-    this.#accumulatedTime.divider += mClock;
-    this.#accumulatedTime.counter += mClock;
+    throw new Error('unimplemented!');
+  }
 
-    if (this.#accumulatedTime.tick >= 4) {
-      this.#tick++;
-      this.#accumulatedTime.tick -= 4;
-    }
+  private get DIV() {
+    return this.#memory.readByte(DIV_ADDR);
+  }
 
-    if (this.#accumulatedTime.divider >= 16) {
-      this.#registers.divider = addWithOneByte(this.#registers.divider, 1);
-      this.#accumulatedTime.divider -= 16;
-    }
+  private set DIV(val: number) {
+    this.#memory.writeByte(DIV_ADDR, val);
+  }
 
-    const counterSpeedFactor = this.counterSpeedFactor;
-    if (this.#accumulatedTime.counter >= counterSpeedFactor) {
-      const increasement = Math.floor(
-        this.#accumulatedTime.counter / counterSpeedFactor
-      );
-      const left = this.#accumulatedTime.counter % counterSpeedFactor;
-      this.#registers.counter += increasement;
-      this.#accumulatedTime.counter = left;
-    }
+  private get TIMA() {
+    return this.#memory.readByte(TIMA_ADDR);
+  }
+
+  private set TIMA(val: number) {
+    this.#memory.writeByte(TIMA_ADDR, val);
+  }
+
+  private get TMA() {
+    return this.#memory.readByte(TMA_ADDR);
+  }
+
+  private set TMA(val: number) {
+    this.#memory.writeByte(TMA_ADDR, val);
+  }
+
+  private get TAC() {
+    return this.#memory.readByte(TAC_ADDR);
+  }
+
+  private set TAC(val: number) {
+    this.#memory.writeByte(TAC_ADDR, val);
   }
 }

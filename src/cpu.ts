@@ -1,12 +1,10 @@
 import { CPUState } from '../jsmooTest';
 import {
-  DIV_ADDR,
   IE_ADDR,
   IF_ADDR,
   INTERRUPT_HANDLER_ADDR_MAP,
   InterruptBit,
   PRIORITIZED_INTERRUPT_BITS,
-  TIMA_ADDR,
 } from './const';
 import { GPU } from './gpu';
 import { GBTimer } from './timer';
@@ -946,22 +944,6 @@ export class Z80 {
     val: boolean
   ) {
     return setBit(IF, interruptBit, val ? 1 : 0);
-  }
-
-  private get DIV() {
-    return this.#memory.readByte(DIV_ADDR);
-  }
-
-  private set DIV(val: number) {
-    this.#memory.writeByte(DIV_ADDR, val);
-  }
-
-  private get TIMA() {
-    return this.#memory.readByte(TIMA_ADDR);
-  }
-
-  private set TIMA(val: number) {
-    this.#memory.writeByte(TIMA_ADDR, val);
   }
 
   private pcInc() {
