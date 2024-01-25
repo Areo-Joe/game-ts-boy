@@ -138,6 +138,10 @@ export function performOperationOnOperandsWithBitLength(
   return result;
 }
 
+export function setBit(val: number, bitIndex: number, bit: 1 | 0) {
+  return (val & ~(1 << bitIndex)) | (bit << bitIndex);
+}
+
 export function getBit(val: number, bitIndex: number) {
   return (val & (1 << bitIndex)) >> bitIndex;
 }

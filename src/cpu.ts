@@ -1,4 +1,13 @@
 import { CPUState } from '../jsmooTest';
+import {
+  DIV_ADDR,
+  IE_ADDR,
+  IF_ADDR,
+  INTERRUPT_HANDLER_ADDR_MAP,
+  InterruptBit,
+  PRIORITIZED_INTERRUPT_BITS,
+  TIMA_ADDR,
+} from './const';
 import { GPU } from './gpu';
 import { GBTimer } from './timer';
 import {
@@ -18,6 +27,7 @@ import {
   getFirstBit,
   getBit,
   signedExtend,
+  setBit,
 } from './utils';
 
 // GB's cpu is a modified Z80, so...
@@ -34,6 +44,7 @@ export class Z80 {
   }
 
   #IME = false; // controls the overall interrupt's availablility
+  #EI_DELAY = false; // EI works after 1 instruction dealy
 
   #registers = {
     // for computation
@@ -764,12 +775,46 @@ export class Z80 {
   runOnce() {
     const opcode = this.readFromPcAndIncPc();
     const func = this.#opMap[opcode];
-    func.call(this);
+    return func.call(this);
   }
 
   run() {
     while (true) {
-      this.runOnce();
+      this.#EI_DELAY = true;
+      const timeConsumed = this.runOnce();
+
+      if (this.#EI_DELAY) {
+        continue;
+      }
+      if (!this.#IME) {
+        continue;
+      }
+      const IE = this.IE;
+      const IF = this.IF;
+      for (let i = 0; i < PRIORITIZED_INTERRUPT_BITS.length; i++) {
+        const interruptBit = PRIORITIZED_INTERRUPT_BITS[i];
+        if (
+          this.getInterruptEnabled(IE, interruptBit) &&
+          this.getInterruptFlag(IF, interruptBit)
+        ) {
+          this.#IME = false;
+          this.IF = this.setInterruptFlag(IF, interruptBit, false);
+          // push pc
+          this.DEC_doubleByteR('sp');
+          this.#memory.writeByte(
+            this.#registers.sp,
+            higherByteOfDoubleByte(this.#registers.pc)
+          );
+          this.DEC_doubleByteR('sp');
+          this.#memory.writeByte(
+            this.#registers.sp,
+            lowerByteOfDoubleByte(this.#registers.pc)
+          );
+          // jump to handler
+          this.#registers.pc = INTERRUPT_HANDLER_ADDR_MAP.get(interruptBit)!;
+          break;
+        }
+      }
     }
   }
 
@@ -861,6 +906,62 @@ export class Z80 {
     } else {
       this.#registers.f &= 0xff ^ 0x10;
     }
+  }
+
+  private get IE() {
+    return this.#memory.readByte(IE_ADDR);
+  }
+
+  private set IE(val: number) {
+    this.#memory.writeByte(IE_ADDR, val);
+  }
+
+  private getInterruptEnabled(IE: number, interruptBit: InterruptBit) {
+    return getBit(IE, interruptBit) === 1;
+  }
+
+  private setInterruptEnabled(
+    IE: number,
+    interruptBit: InterruptBit,
+    val: boolean
+  ) {
+    return setBit(IE, interruptBit, val ? 1 : 0);
+  }
+
+  private get IF() {
+    return this.#memory.readByte(IF_ADDR);
+  }
+
+  private set IF(val: number) {
+    this.#memory.writeByte(IF_ADDR, val);
+  }
+
+  private getInterruptFlag(IF: number, interruptBit: InterruptBit) {
+    return getBit(IF, interruptBit) === 1;
+  }
+
+  private setInterruptFlag(
+    IF: number,
+    interruptBit: InterruptBit,
+    val: boolean
+  ) {
+    return setBit(IF, interruptBit, val ? 1 : 0);
+  }
+
+  private get DIV() {
+    return this.#memory.readByte(DIV_ADDR);
+  }
+
+  private set DIV(val: number) {
+    this.#memory.writeByte(DIV_ADDR, val);
+  }
+
+  private get TIMA() {
+    return this.#memory.readByte(TIMA_ADDR);
+  }
+
+  private set TIMA(val: number) {
+    this.#memory.writeByte(TIMA_ADDR, val);
   }
 
   private pcInc() {
@@ -1756,7 +1857,8 @@ export class Z80 {
   }
 
   private EMPTY_OPCODE() {
-    throw new Error('This op should not be called!');
+    console.error('This op should not be called!');
+    return 0 as const;
   }
 
   private signal_io_device() {
@@ -2271,7 +2373,7 @@ export class Z80 {
   private Stop() {
     // todo: check usage
 
-    return 1;
+    return 1 as const;
   }
 
   private LD_DE_d16() {
@@ -2846,6 +2948,7 @@ export class Z80 {
 
   private HALT() {
     // throw new Error('Unimplemented! Need to figure out its meaning!');
+    return 1 as const;
   }
 
   private LD_HLa_A() {
@@ -3655,6 +3758,7 @@ export class Z80 {
 
   private EI() {
     this.#IME = true;
+    this.#EI_DELAY = true;
 
     return 1 as const;
   }
