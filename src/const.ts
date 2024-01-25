@@ -29,6 +29,10 @@ const DIV_ADDR = 0xff04;
 
 const TIMA_ADDR = 0xff05;
 
+const TMA_ADDR = 0xff06;
+
+const TAC_ADDR = 0xff06;
+
 export {
   IE_ADDR,
   IF_ADDR,
@@ -37,4 +41,6 @@ export {
   INTERRUPT_HANDLER_ADDR_MAP,
   DIV_ADDR,
   TIMA_ADDR,
+  TMA_ADDR,
+  TAC_ADDR,
 };
