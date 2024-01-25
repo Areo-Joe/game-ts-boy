@@ -1,3 +1,4 @@
+import { CPUState } from '../jsmooTest';
 import { GPU } from './gpu';
 import { GBTimer } from './timer';
 import {
@@ -12,14 +13,15 @@ import {
   lowerByteOfDoubleByte,
   higherByteOfDoubleByte,
   andWithOneByte,
-  parseAsSigned,
   assertEven,
   getLastBit,
   getFirstBit,
   getBit,
+  signedExtend,
 } from './utils';
 
 // GB's cpu is a modified Z80, so...
+// todo: it is not... just a same family
 export class Z80 {
   #memory: MMU;
   #timer: GBTimer;
@@ -704,48 +706,70 @@ export class Z80 {
     this.SET_7_A,
   ];
 
-  // todo: maybe it is done by bios
-  init() {
-    this.#registers.pc = 0x100;
-    this.#registers.a = 1;
-    this.#registers.f = 0xb0;
-    this.#registers.b = 0x00;
-    this.#registers.c = 0x13;
-    this.#registers.d = 0x00;
-    this.#registers.e = 0xd8;
-    this.#registers.h = 0x01;
-    this.#registers.l = 0x4d;
-    this.#registers.sp = 0xfffe;
+  setState({ pc, sp, a, b, c, d, e, f, h, l, ram }: CPUState) {
+    this.#registers.pc = pc;
+    this.#registers.a = a;
+    this.#registers.f = f;
+    this.#registers.b = b;
+    this.#registers.c = c;
+    this.#registers.d = d;
+    this.#registers.e = e;
+    this.#registers.h = h;
+    this.#registers.l = l;
+    this.#registers.sp = sp;
+    for (let i = 0; i < ram.length; i++) {
+      this.#memory.writeByte(ram[i][0], ram[i][1]);
+    }
+  }
+
+  compareState({ pc, sp, a, b, c, d, e, f, h, l, ram }: CPUState) {
+    if (
+      this.#registers.pc === pc &&
+      this.#registers.a === a &&
+      this.#registers.f === f &&
+      this.#registers.b === b &&
+      this.#registers.c === c &&
+      this.#registers.d === d &&
+      this.#registers.e === e &&
+      this.#registers.h === h &&
+      this.#registers.l === l &&
+      this.#registers.sp === sp
+    ) {
+      const localRam = [];
+      let same = true;
+      for (let i = 0; i < ram.length; i++) {
+        const val = this.#memory.readByte(ram[i][0]);
+        localRam.push([ram[i][0], val]);
+        if (val !== ram[i][1]) {
+          same = false;
+        }
+      }
+      return same
+        ? true
+        : JSON.stringify({ registers: this.#registers, ram: localRam });
+    } else {
+      const localRam = [];
+      for (let i = 0; i < ram.length; i++) {
+        const val = this.#memory.readByte(ram[i][0]);
+        localRam.push([ram[i][0], val]);
+      }
+      return JSON.stringify(
+        { registers: this.#registers, ram: localRam },
+        null,
+        4
+      );
+    }
+  }
+
+  runOnce() {
+    const opcode = this.readFromPcAndIncPc();
+    const func = this.#opMap[opcode];
+    func.call(this);
   }
 
   run() {
     while (true) {
-      const opcode = this.readFromPcAndIncPc();
-      const func = this.#opMap[opcode];
-      func.call(this);
-    }
-  }
-
-  get logLine() {
-    const singles = ('afbcdehl'.split('') as Array<Z80SingleByteRegisters>)
-      .map((r) => `${r.toUpperCase()}: ${hexStr(this.#registers[r], 2)}`)
-      .join(' ');
-    return `${singles} SP: ${hexStr(this.#registers.sp, 4)} PC: 00:${hexStr(
-      this.#registers.pc,
-      4
-    )} (${[0, 1, 2, 3]
-      .map((num) => hexStr(this.#memory.readByte(this.#registers.pc + num), 2))
-      .join(' ')})`;
-
-    function hexStr(num: number, digit: number) {
-      let str = num.toString(16).toUpperCase();
-      if (str.length < digit) {
-        str =
-          Array(digit - str.length)
-            .fill(0)
-            .join('') + str;
-      }
-      return str;
+      this.runOnce();
     }
   }
 
@@ -1177,6 +1201,8 @@ export class Z80 {
     const source = this.#memory.readByte(addr);
     const result = addWithOneByte(target, source);
 
+    this.#registers[targetRegister] = result;
+
     this.zeroFlag = shouldSetZeroFlag(result);
     this.substractionFlag = false;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
@@ -1303,6 +1329,8 @@ export class Z80 {
     const source = this.#memory.readByte(addr);
     const result = minusWithOneByte(target, source);
 
+    this.#registers[targetRegister] = result;
+
     this.zeroFlag = shouldSetZeroFlag(result);
     this.substractionFlag = true;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
@@ -1332,7 +1360,7 @@ export class Z80 {
     this.#registers[targetRegister] = result;
 
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.substractionFlag = true;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
       Operation.Minus,
       BitLength.OneByte,
@@ -1368,7 +1396,7 @@ export class Z80 {
     this.#registers[targetRegister] = result;
 
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.substractionFlag = true;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
       Operation.Minus,
       BitLength.OneByte,
@@ -1698,6 +1726,8 @@ export class Z80 {
 
     const result = minusWithOneByte(registerVal, val, this.carryFlag ? 1 : 0);
 
+    this.#registers[targetRegister] = result;
+
     this.zeroFlag = shouldSetZeroFlag(result);
     this.substractionFlag = true;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
@@ -1774,7 +1804,6 @@ export class Z80 {
     targetRegister: Z80SingleByteRegisters,
     sourceRegister: Z80SingleByteRegisters
   ) {
-    console.log('called');
     const sourceHalfAddr = this.#registers[sourceRegister];
     const sourceAddr = addWithDoubleByte(0xff00, sourceHalfAddr);
     const val = this.#memory.readByte(sourceAddr);
@@ -1966,7 +1995,7 @@ export class Z80 {
     const val = this.#registers[register];
     const firstBit = getFirstBit(val);
     const lastBit = getLastBit(val, BitLength.OneByte);
-    const result = ((val & 0b1000_0000) >> 1) + (lastBit << 7);
+    const result = ((val & 0b1111_1110) >> 1) + (lastBit << 7);
     this.#registers[register] = result;
     this.carryFlag = firstBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
@@ -1987,7 +2016,7 @@ export class Z80 {
     const val = this.#memory.readByte(addr);
     const firstBit = getFirstBit(val);
     const lastBit = getLastBit(val, BitLength.OneByte);
-    const result = ((val & 0b1000_0000) >> 1) + (lastBit << 7);
+    const result = ((val & 0b1111_1110) >> 1) + (lastBit << 7);
     this.#memory.writeByte(addr, result);
     this.carryFlag = firstBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
@@ -2001,7 +2030,7 @@ export class Z80 {
     const val = this.#registers[register];
     const highHalf = (val & 0xf0) >> 4;
     const lowHalf = val & 0x0f;
-    const result = lowHalf << (4 + highHalf);
+    const result = (lowHalf << 4) + highHalf;
     this.#registers[register] = result;
     this.carryFlag = false;
     this.zeroFlag = shouldSetZeroFlag(result);
@@ -2022,7 +2051,7 @@ export class Z80 {
     const val = this.#memory.readByte(addr);
     const highHalf = (val & 0xf0) >> 4;
     const lowHalf = val & 0x0f;
-    const result = lowHalf << (4 + highHalf);
+    const result = (lowHalf << 4) + highHalf;
     this.#memory.writeByte(addr, result);
     this.carryFlag = false;
     this.zeroFlag = shouldSetZeroFlag(result);
@@ -2119,7 +2148,7 @@ export class Z80 {
 
   private SET_n_R(n: number, register: Z80SingleByteRegisters) {
     const val = this.#registers[register];
-    const result = val & (1 << n);
+    const result = val | (1 << n);
     this.#registers[register] = result;
 
     return 2 as const;
@@ -2135,7 +2164,7 @@ export class Z80 {
       addrLowerByteRegister
     );
     const val = this.#memory.readByte(addr);
-    const result = val & (1 << n);
+    const result = val | (1 << n);
     this.#memory.writeByte(addr, result);
 
     return 4 as const;
@@ -2178,6 +2207,9 @@ export class Z80 {
     const leftOne = ((this.#registers.a & 0xff) << 1) & 0xff;
     const result = (leftOne & ~1) | lastBit;
     this.#registers.a = result;
+    this.zeroFlag = false;
+    this.substractionFlag = false;
+    this.halfCarryFlag = false;
     this.carryFlag = lastBit === 1;
 
     return 1 as const;
@@ -2224,6 +2256,9 @@ export class Z80 {
     const a = this.#registers.a & 0xff;
     const firstBit = 1 & a;
     this.#registers.a = (0xff & (a >> 1) & ((1 << 7) - 1)) | (firstBit << 7);
+    this.zeroFlag = false;
+    this.substractionFlag = false;
+    this.halfCarryFlag = false;
     this.carryFlag = firstBit === 1;
 
     return 1 as const;
@@ -2235,7 +2270,6 @@ export class Z80 {
 
   private Stop() {
     // todo: check usage
-    this.pcInc();
 
     return 1;
   }
@@ -2270,6 +2304,9 @@ export class Z80 {
     const movedLeft = (a << 1) & 0xff;
     const result = (movedLeft & ~1) | (this.carryFlag ? 1 : 0);
     this.#registers.a = result;
+    this.zeroFlag = false;
+    this.substractionFlag = false;
+    this.halfCarryFlag = false;
     this.carryFlag = lastBit === 0 ? false : true;
 
     return 1 as const;
@@ -2280,9 +2317,13 @@ export class Z80 {
   // ***** [4th 8 ops] [0x18 - 0x1f] starts *****
 
   private JR_s8() {
-    const notParsed8Bit = this.readFromPcAndIncPc();
-    const parsed = parseAsSigned(notParsed8Bit, BitLength.OneByte);
-    this.#registers.pc = addWithDoubleByte(this.#registers.pc, parsed);
+    const notExtended = this.readFromPcAndIncPc();
+    const extended = signedExtend(
+      notExtended,
+      BitLength.OneByte,
+      BitLength.DoubleByte
+    );
+    this.#registers.pc = addWithDoubleByte(this.#registers.pc, extended);
 
     return 3 as const;
   }
@@ -2511,7 +2552,21 @@ export class Z80 {
   }
 
   private ADD_HL_SP() {
-    return this.ADD_RR_doubleByteR('h', 'l', 'sp');
+    const source = this.#registers.sp;
+    const target = this.joinRegisterPair('h', 'l');
+    const result = addWithDoubleByte(target, source);
+    this.distributeToRegisterPair('h', 'l', result);
+    this.substractionFlag = false;
+    // yeah 12 is correct
+    this.halfCarryFlag = shouldSetCarryFlag(Operation.Add, 12, target, source);
+    this.carryFlag = shouldSetCarryFlag(
+      Operation.Add,
+      BitLength.DoubleByte,
+      target,
+      source
+    );
+
+    return 2 as const;
   }
 
   private LD_A_HLa_and_DEC_HL() {
@@ -2538,7 +2593,7 @@ export class Z80 {
   }
 
   private CCF() {
-    this.halfCarryFlag = !this.halfCarryFlag;
+    this.carryFlag = !this.carryFlag;
     this.substractionFlag = false;
     this.halfCarryFlag = false;
 
@@ -3441,24 +3496,29 @@ export class Z80 {
   // ***** [30th 8 ops] [0xe8 - 0xef] starts *****
 
   private ADD_SP_s8() {
-    const notParsed8Bit = this.readFromPcAndIncPc();
-    const parsed = parseAsSigned(notParsed8Bit, BitLength.OneByte);
+    const notExtended = this.readFromPcAndIncPc();
+    const extended = signedExtend(
+      notExtended,
+      BitLength.OneByte,
+      BitLength.DoubleByte
+    );
     const sp = this.#registers.sp;
-    const result = addWithDoubleByte(sp, parsed);
+    const result = addWithDoubleByte(sp, extended);
     this.#registers.sp = result;
     this.zeroFlag = false;
     this.substractionFlag = false;
+    // yeah one byte is correct
     this.halfCarryFlag = shouldSetHalfCarryFlag(
       Operation.Add,
-      BitLength.DoubleByte,
+      BitLength.OneByte,
       sp,
-      parsed
+      extended
     );
     this.carryFlag = shouldSetCarryFlag(
       Operation.Add,
       BitLength.OneByte,
       sp,
-      parsed
+      extended
     );
 
     return 4 as const;
@@ -3554,26 +3614,29 @@ export class Z80 {
   // ***** [32nd 8 ops] [0xf8 - 0xff] starts *****
 
   private LD_HL_SPPlusD8() {
-    const notParsed8Bit = this.readFromPcAndIncPc();
-    const parsed = parseAsSigned(notParsed8Bit, BitLength.OneByte);
+    const notExtended = this.readFromPcAndIncPc();
+    const extended = signedExtend(
+      notExtended,
+      BitLength.OneByte,
+      BitLength.DoubleByte
+    );
     const originSp = this.#registers.sp;
-    const sp = addWithDoubleByte(originSp, parsed);
-    this.#registers.sp = sp;
+    const sp = addWithDoubleByte(originSp, extended);
     this.distributeToRegisterPair('h', 'l', sp);
 
     this.zeroFlag = false;
     this.substractionFlag = false;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
       Operation.Add,
-      BitLength.DoubleByte,
+      BitLength.OneByte,
       originSp,
-      parsed
+      extended
     );
-    this.halfCarryFlag = shouldSetCarryFlag(
+    this.carryFlag = shouldSetCarryFlag(
       Operation.Add,
-      BitLength.DoubleByte,
+      BitLength.OneByte,
       originSp,
-      parsed
+      extended
     );
 
     return 3 as const;
@@ -3814,35 +3877,35 @@ export class Z80 {
   // ***** [6th 8 ops] [0x28 - 0x2f] starts *****
 
   private SRA_B() {
-    return this.SLA_R('b');
+    return this.SRA_R('b');
   }
 
   private SRA_C() {
-    return this.SLA_R('c');
+    return this.SRA_R('c');
   }
 
   private SRA_D() {
-    return this.SLA_R('d');
+    return this.SRA_R('d');
   }
 
   private SRA_E() {
-    return this.SLA_R('e');
+    return this.SRA_R('e');
   }
 
   private SRA_H() {
-    return this.SLA_R('h');
+    return this.SRA_R('h');
   }
 
   private SRA_L() {
-    return this.SLA_R('l');
+    return this.SRA_R('l');
   }
 
   private SRA_HLa() {
-    return this.SLA_RRa('h', 'l');
+    return this.SRA_RRa('h', 'l');
   }
 
   private SRA_A() {
-    return this.SLA_R('a');
+    return this.SRA_R('a');
   }
 
   // ***** [6th 8 ops] [0x28 - 0x2f] ends *****
@@ -3850,35 +3913,35 @@ export class Z80 {
   // ***** [7th 8 ops] [0x30 - 0x37] starts *****
 
   private SWAP_B() {
-    return this.SLA_R('b');
+    return this.SWAP_R('b');
   }
 
   private SWAP_C() {
-    return this.SLA_R('c');
+    return this.SWAP_R('c');
   }
 
   private SWAP_D() {
-    return this.SLA_R('d');
+    return this.SWAP_R('d');
   }
 
   private SWAP_E() {
-    return this.SLA_R('e');
+    return this.SWAP_R('e');
   }
 
   private SWAP_H() {
-    return this.SLA_R('h');
+    return this.SWAP_R('h');
   }
 
   private SWAP_L() {
-    return this.SLA_R('l');
+    return this.SWAP_R('l');
   }
 
   private SWAP_HLa() {
-    return this.SLA_RRa('h', 'l');
+    return this.SWAP_RRa('h', 'l');
   }
 
   private SWAP_A() {
-    return this.SLA_R('a');
+    return this.SWAP_R('a');
   }
 
   // ***** [7th 8 ops] [0x30 - 0x37] ends *****

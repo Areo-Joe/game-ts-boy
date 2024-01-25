@@ -4,6 +4,22 @@ export function assertEven(x: number) {
   }
 }
 
+export function signedExtend(
+  numToBeExtended: number,
+  originBitLength: number,
+  targetBitLength: number
+) {
+  const isNegative = (numToBeExtended & (1 << (originBitLength - 1))) !== 0;
+  if (isNegative) {
+    return (
+      numToBeExtended |
+      (((1 << targetBitLength) - 1) & ~((1 << originBitLength) - 1))
+    );
+  } else {
+    return numToBeExtended;
+  }
+}
+
 export function parseAsSigned(val: number, bitLength: number) {
   const allOnes = (1 << bitLength) - 1;
 
