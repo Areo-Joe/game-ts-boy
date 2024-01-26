@@ -744,7 +744,7 @@ export class Z80 {
       this.#registers.l === l &&
       this.#registers.sp === sp
     ) {
-      const localRam = [];
+      const localRam: Array<[number, number]> = [];
       let same = true;
       for (let i = 0; i < ram.length; i++) {
         const val = this.#memory.readByte(ram[i][0]);
@@ -757,7 +757,7 @@ export class Z80 {
         ? true
         : JSON.stringify({ registers: this.#registers, ram: localRam });
     } else {
-      const localRam = [];
+      const localRam: Array<[number, number]> = [];
       for (let i = 0; i < ram.length; i++) {
         const val = this.#memory.readByte(ram[i][0]);
         localRam.push([ram[i][0], val]);
@@ -778,8 +778,9 @@ export class Z80 {
 
   run() {
     while (true) {
-      this.#EI_DELAY = true;
+      this.#EI_DELAY = false;
       const timeConsumed = this.runOnce();
+      this.#timer.inc(timeConsumed);
 
       if (this.#EI_DELAY) {
         continue;
@@ -810,6 +811,7 @@ export class Z80 {
           );
           // jump to handler
           this.#registers.pc = INTERRUPT_HANDLER_ADDR_MAP.get(interruptBit)!;
+          this.#timer.inc(5);
           break;
         }
       }
@@ -4948,7 +4950,7 @@ function shouldSetHalfCarryFlag(
   return shouldSetCarryFlag(operation, halfBitLength, left, ...rights);
 }
 
-function shouldSetCarryFlag(
+export function shouldSetCarryFlag(
   operation: Operation,
   bitLength: number,
   left: number,
@@ -4982,6 +4984,7 @@ function shouldSetCarryFlag(
 export abstract class MMU {
   abstract readByte(addr: number): number;
   abstract writeByte(addr: number, val: number): void;
+  abstract writeDIV(val: number): void;
 
   abstract readDoubleByte(addr: number): number;
   abstract writeDoubleByte(addr: number, val: number): void;

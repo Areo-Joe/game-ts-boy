@@ -1,9 +1,10 @@
+import { DIV_ADDR } from './const';
 import { MMU } from './cpu';
 
 const writeAddrSet = new Set<number>();
 const readAddrSet = new Set<number>();
 
-let testString = '';
+let logStr = '';
 
 export class GameBoyMMU extends MMU {
   // 0x0000 - 0x3fff
@@ -72,6 +73,9 @@ export class GameBoyMMU extends MMU {
   }
 
   readByte(addr: number): number {
+    if (addr === 0xff44) {
+      return 0x90;
+    }
     let [memoryIndex, refinedAddr] = this.transformAddr(addr);
 
     return this.#memory[memoryIndex][refinedAddr];
@@ -79,13 +83,22 @@ export class GameBoyMMU extends MMU {
   readDoubleByte(addr: number): number {
     return this.readByte(addr) + (this.readByte(addr + 1) << 8);
   }
+  writeDIV(val: number) {
+    const [memoryIndex, refinedAddr] = this.transformAddr(DIV_ADDR);
+
+    this.#memory[memoryIndex][refinedAddr] = val;
+  }
   writeByte(addr: number, val: number): void {
     if (addr === 0xff01) {
-      testString += String.fromCharCode(val);
-      console.log(testString);
-      console.log('\n------\n');
+      logStr += String.fromCharCode(val);
+      console.log(logStr);
+      console.log('------------------\n\n');
     }
     let [memoryIndex, refinedAddr] = this.transformAddr(addr);
+    if (addr === DIV_ADDR) {
+      this.#memory[memoryIndex][refinedAddr] = 0;
+      return;
+    }
 
     this.#memory[memoryIndex][refinedAddr] = val;
   }

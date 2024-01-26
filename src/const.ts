@@ -31,7 +31,7 @@ const TIMA_ADDR = 0xff05;
 
 const TMA_ADDR = 0xff06;
 
-const TAC_ADDR = 0xff06;
+const TAC_ADDR = 0xff07;
 
 export {
   IE_ADDR,
