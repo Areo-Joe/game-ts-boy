@@ -16,7 +16,10 @@ export abstract class GBTimer {
 export class GBTimerImpl extends GBTimer {
   stopped = false;
   #memory: MMU;
-  #mLeft = 0;
+  #mLeft = {
+    DIV: 0,
+    TIMA: 0,
+  };
 
   constructor(memory: MMU) {
     super();
@@ -29,7 +32,12 @@ export class GBTimerImpl extends GBTimer {
 
   inc(mClock: number): void {
     if (!this.stopped) {
-      // todo: check if div is necessary
+      const mLeftDIV = this.#mLeft.DIV + mClock;
+      const DIVIncreasement = Math.floor(mLeftDIV / 64);
+      this.#mLeft.DIV = mLeftDIV % 64;
+      const DIV = this.DIV;
+      const newDIV = DIV + DIVIncreasement;
+      this.DIV = newDIV & 0xff;
     }
 
     const TIMASpeed = this.TIMASpeed;
@@ -38,9 +46,9 @@ export class GBTimerImpl extends GBTimer {
       return;
     }
 
-    const mLeft = this.#mLeft + mClock;
+    const mLeft = this.#mLeft.TIMA + mClock;
     const TIMAIncreasement = Math.floor(mLeft / TIMASpeed);
-    this.#mLeft = mLeft % TIMASpeed;
+    this.#mLeft.TIMA = mLeft % TIMASpeed;
     const TIMA = this.TIMA;
     const newTIMA = TIMA + TIMAIncreasement;
     if (newTIMA > 0xff) {
@@ -57,7 +65,7 @@ export class GBTimerImpl extends GBTimer {
 
   // 64 * m-clock = 1 * DIV
   private get DIV() {
-    return this.#memory.readByte(DIV_ADDR);
+    return this.#memory.readByte(DIV_ADDR, true);
   }
 
   private set DIV(val: number) {

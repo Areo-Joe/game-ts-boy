@@ -34,6 +34,7 @@ export class Z80 {
   #memory: MMU;
   #timer: GBTimer;
   #gpu: GPU;
+  #halted = false;
 
   constructor(mmu: MMU, timer: GBTimer, gpu: GPU) {
     this.#memory = mmu;
@@ -773,23 +774,12 @@ export class Z80 {
   runOnce() {
     const opcode = this.readFromPcAndIncPc();
     const func = this.#opMap[opcode];
+    opcode !== 0 && console.log(func, opcode);
     return func.call(this);
   }
 
   run() {
-    while (true) {
-      this.#EI_DELAY = false;
-      const timeConsumed = this.runOnce();
-      this.#timer.inc(timeConsumed);
-
-      if (this.#EI_DELAY) {
-        continue;
-      }
-      if (!this.#IME) {
-        continue;
-      }
-      const IE = this.IE;
-      const IF = this.IF;
+    const checkHandler = (IE: number, IF: number) => {
       for (let i = 0; i < PRIORITIZED_INTERRUPT_BITS.length; i++) {
         const interruptBit = PRIORITIZED_INTERRUPT_BITS[i];
         if (
@@ -814,6 +804,36 @@ export class Z80 {
           this.#timer.inc(5);
           break;
         }
+      }
+    };
+    while (true) {
+      if (!this.#halted) {
+        this.#EI_DELAY = false;
+        const timeConsumed = this.runOnce();
+        this.#timer.inc(timeConsumed);
+
+        if (this.#EI_DELAY) {
+          continue;
+        }
+        if (!this.#IME) {
+          continue;
+        }
+        const IE = this.IE;
+        const IF = this.IF;
+        checkHandler(IE, IF);
+      } else {
+        this.#timer.inc(1);
+        const IE = this.IE;
+        const IF = this.IF;
+        if ((IE & IF) === 0) {
+          (IE !== 0 || IF !== 0) && console.log('continue', IE, IF);
+          continue;
+        }
+        this.#halted = false;
+        if (!this.#IME) {
+          continue;
+        }
+        checkHandler(IE, IF);
       }
     }
   }
@@ -2931,7 +2951,8 @@ export class Z80 {
   }
 
   private HALT() {
-    // throw new Error('Unimplemented! Need to figure out its meaning!');
+    this.#halted = true;
+
     return 1 as const;
   }
 
