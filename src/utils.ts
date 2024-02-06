@@ -1,3 +1,7 @@
+export function allOnes(bitLength: number) {
+  return (1 << bitLength) - 1;
+}
+
 export function assertEven(x: number) {
   if (x % 2 !== 0) {
     throw new Error(`${x} is not even!`);

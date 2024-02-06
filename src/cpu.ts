@@ -1,4 +1,5 @@
 import { CPUState } from '../jsmooTest';
+import { MMU } from './mmu';
 import {
   IE_ADDR,
   IF_ADDR,
@@ -27,6 +28,8 @@ import {
   signedExtend,
   setBit,
 } from './utils';
+
+let count = 265;
 
 // GB's cpu is a modified Z80, so...
 // todo: it is not... just a same family
@@ -774,7 +777,6 @@ export class Z80 {
   runOnce() {
     const opcode = this.readFromPcAndIncPc();
     const func = this.#opMap[opcode];
-    opcode !== 0 && console.log(func, opcode);
     return func.call(this);
   }
 
@@ -826,7 +828,6 @@ export class Z80 {
         const IE = this.IE;
         const IF = this.IF;
         if ((IE & IF) === 0) {
-          (IE !== 0 || IF !== 0) && console.log('continue', IE, IF);
           continue;
         }
         this.#halted = false;
@@ -5000,15 +5001,6 @@ export function shouldSetCarryFlag(
   } else {
     throw new Error('Judging Carry: operation not implemented!');
   }
-}
-
-export abstract class MMU {
-  abstract readByte(addr: number): number;
-  abstract writeByte(addr: number, val: number): void;
-  abstract writeDIV(val: number): void;
-
-  abstract readDoubleByte(addr: number): number;
-  abstract writeDoubleByte(addr: number, val: number): void;
 }
 
 type Z80SingleByteRegisters = 'a' | 'b' | 'c' | 'd' | 'e' | 'h' | 'l' | 'f';
