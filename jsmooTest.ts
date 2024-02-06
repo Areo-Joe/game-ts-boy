@@ -64,7 +64,10 @@ for (let i = 0; i < 0xff; i++) {
   for (let j = 0; j < tests.length; j++) {
     const test = tests[j];
     cpu.setState(test.initial);
-    cpu.runOnce();
+    const time = cpu.runOnce();
+    if (typeof time !== 'number') {
+      throw new Error(`time is not number ${time}, ${i.toString(16)}`);
+    }
     const result = cpu.compareState(test.final);
     if (result !== true) {
       console.log('wrong at:', i.toString(16));
@@ -85,7 +88,10 @@ for (let i = 0; i < 0xff; i++) {
   for (let j = 0; j < tests.length; j++) {
     const test = tests[j];
     cpu.setState(test.initial);
-    cpu.runOnce();
+    const time = cpu.runOnce();
+    if (typeof time !== 'number') {
+      throw new Error(`time is not number ${time}, cb${i.toString(16)}`);
+    }
     const result = cpu.compareState(test.final);
     if (result !== true) {
       console.log('wrong at: cb', i.toString(16));
