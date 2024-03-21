@@ -1,14 +1,11 @@
 import { CPUState } from '../jsmooTest';
-import { MMU } from './mmu';
+import { GameBoyMMU } from './mmu';
 import {
-  IE_ADDR,
-  IF_ADDR,
   INTERRUPT_HANDLER_ADDR_MAP,
   InterruptBit,
   PRIORITIZED_INTERRUPT_BITS,
-} from './const';
+} from './interruptConst';
 import { GPU } from './gpu';
-import { GBTimer } from './timer';
 import {
   BitLength,
   Operation,
@@ -28,18 +25,16 @@ import {
   signedExtend,
   setBit,
 } from './utils';
+import { Timer } from './timer';
+import { MemoryRegister } from './mRegisters';
 
-let count = 265;
-
-// GB's cpu is a modified Z80, so...
-// todo: it is not... just a same family
-export class Z80 {
-  #memory: MMU;
-  #timer: GBTimer;
+export class CPU {
+  #memory: GameBoyMMU;
+  #timer: Timer;
   #gpu: GPU;
   #halted = false;
 
-  constructor(mmu: MMU, timer: GBTimer, gpu: GPU) {
+  constructor(mmu: GameBoyMMU, timer: Timer, gpu: GPU) {
     this.#memory = mmu;
     this.#timer = timer;
     this.#gpu = gpu;
@@ -781,6 +776,7 @@ export class Z80 {
   }
 
   run() {
+    this.#registers.pc = 0x100; // no boot rom should start at 0x100
     const checkHandler = (IE: number, IF: number) => {
       for (let i = 0; i < PRIORITIZED_INTERRUPT_BITS.length; i++) {
         const interruptBit = PRIORITIZED_INTERRUPT_BITS[i];
@@ -803,7 +799,7 @@ export class Z80 {
           );
           // jump to handler
           this.#registers.pc = INTERRUPT_HANDLER_ADDR_MAP.get(interruptBit)!;
-          this.#timer.inc(5);
+          this.#timer.increaseMClocks(5);
           break;
         }
       }
@@ -812,7 +808,7 @@ export class Z80 {
       if (!this.#halted) {
         this.#EI_DELAY = false;
         const timeConsumed = this.runOnce();
-        this.#timer.inc(timeConsumed);
+        this.#timer.increaseMClocks(timeConsumed);
 
         if (this.#EI_DELAY) {
           continue;
@@ -824,7 +820,7 @@ export class Z80 {
         const IF = this.IF;
         checkHandler(IE, IF);
       } else {
-        this.#timer.inc(1);
+        this.#timer.increaseMClocks(1);
         const IE = this.IE;
         const IF = this.IF;
         if ((IE & IF) === 0) {
@@ -930,11 +926,11 @@ export class Z80 {
   }
 
   private get IE() {
-    return this.#memory.readByte(IE_ADDR);
+    return this.#memory.readByte(MemoryRegister.IE);
   }
 
   private set IE(val: number) {
-    this.#memory.writeByte(IE_ADDR, val);
+    this.#memory.writeByte(MemoryRegister.IE, val);
   }
 
   private getInterruptEnabled(IE: number, interruptBit: InterruptBit) {
@@ -950,11 +946,11 @@ export class Z80 {
   }
 
   private get IF() {
-    return this.#memory.readByte(IF_ADDR);
+    return this.#memory.readByte(MemoryRegister.IF);
   }
 
   private set IF(val: number) {
-    this.#memory.writeByte(IF_ADDR, val);
+    this.#memory.writeByte(MemoryRegister.IF, val);
   }
 
   private getInterruptFlag(IF: number, interruptBit: InterruptBit) {
