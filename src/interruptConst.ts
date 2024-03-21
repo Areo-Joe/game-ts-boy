@@ -1,7 +1,3 @@
-const IE_ADDR = 0xffff; // interrupt enable
-
-const IF_ADDR = 0xff0f; // interrupt flag
-
 enum InterruptBit {
   V_BLANK = 0,
   LCD = 1,
@@ -25,22 +21,4 @@ INTERRUPT_HANDLER_ADDR_MAP.set(InterruptBit.TIMER, 0x50);
 INTERRUPT_HANDLER_ADDR_MAP.set(InterruptBit.SERIAL, 0x58);
 INTERRUPT_HANDLER_ADDR_MAP.set(InterruptBit.JOYPAD, 0x60);
 
-const DIV_ADDR = 0xff04;
-
-const TIMA_ADDR = 0xff05;
-
-const TMA_ADDR = 0xff06;
-
-const TAC_ADDR = 0xff07;
-
-export {
-  IE_ADDR,
-  IF_ADDR,
-  InterruptBit,
-  PRIORITIZED_INTERRUPT_BITS,
-  INTERRUPT_HANDLER_ADDR_MAP,
-  DIV_ADDR,
-  TIMA_ADDR,
-  TMA_ADDR,
-  TAC_ADDR,
-};
+export { InterruptBit, PRIORITIZED_INTERRUPT_BITS, INTERRUPT_HANDLER_ADDR_MAP };

@@ -1,82 +1,55 @@
-import {
-  memoryDivisionSizeMap,
-  MemoryDivision,
-  memoryDivisions,
-} from './consts';
-import { transformAddr } from './utils';
-import { DIV_ADDR } from '../const';
+import { InterruptBit } from '../interruptConst';
 import { MemoryRegister } from '../mRegisters';
-import { allOnes } from '../utils';
+import { setBit } from '../utils';
+import { MMUTimerHooks, Timer } from '../timer';
 
 let logStr = '';
 
-export abstract class MMU {
-  abstract readByte(addr: number): number;
-  abstract writeByte(addr: number, val: number): void;
-
-  abstract readDoubleByte(addr: number): number;
-  abstract writeDoubleByte(addr: number, val: number): void;
-
-  abstract loadRom(rom: Uint8Array): void;
+function validateAddr(addr: number) {
+  if (addr < 0 || addr >= 0x10000) {
+    throw new Error(`invalid addr: ${addr.toString(16)}`);
+  }
 }
 
-export class GameBoyMMU extends MMU {
-  #rom: Uint8Array | null = null;
-  #videoRAM = new Uint8Array(
-    memoryDivisionSizeMap.get(MemoryDivision.videoRAM)!
-  );
-  #workRAM = new Uint8Array(memoryDivisionSizeMap.get(MemoryDivision.workRAM)!);
-  #OAM = new Uint8Array(
-    memoryDivisionSizeMap.get(MemoryDivision.objectAttributeMemory)!
-  );
-  #IO = new Uint8Array(memoryDivisionSizeMap.get(MemoryDivision.IO)!);
-  #highRAM = new Uint8Array(memoryDivisionSizeMap.get(MemoryDivision.highRAM)!);
-  #IE = 0;
+export enum MMUMode {
+  DEBUG,
+  PROD,
+}
 
-  constructor() {
-    super();
+export class GameBoyMMU {
+  #memory = new Uint8Array(0x10000);
+  #timer: Timer | null = null;
+
+  constructor(timer?: Timer) {
+    timer && (this.#timer = timer);
+  }
+
+  setTimer(timer: Timer) {
+    this.#timer = timer;
   }
 
   readByte(addr: number): number {
-    const [division, index] = transformAddr(addr);
-    switch (division) {
-      // internal usable area
-      case MemoryDivision.videoRAM:
-        return this.#videoRAM[index];
-      case MemoryDivision.workRAM:
-        return this.#workRAM[index];
-      case MemoryDivision.objectAttributeMemory:
-        return this.#OAM[index];
-      case MemoryDivision.IO:
-        switch (addr) {
-          case MemoryRegister.SB:
-          case MemoryRegister.DIV:
-          case MemoryRegister.TIMA:
-          case MemoryRegister.TMA:
-            return this.#IO[index]; // read full bits, no need to handle
-          case MemoryRegister.TAC:
-            return (this.#IO[index] & allOnes(3)) | (allOnes(5) << 3);
-          case MemoryRegister.IF:
-            return (this.#IO[index] & allOnes(5)) | (allOnes(3) << 5);
-          case MemoryRegister.LY:
-            return 0x90; // todo: check this hardcode
-          case MemoryRegister.IE:
-            return (this.#IO[index] & allOnes(5)) | (allOnes(3) << 5);
-          default:
-            return 0xff; // todo: now temply makes unhandled IO register 0xff
-        }
-      case MemoryDivision.highRAM:
-        return this.#highRAM[index];
-      case MemoryDivision.IE:
-        return this.#IE;
-      // cart
-      case MemoryDivision.fixedCartROM:
-        // now we only impl NO MBC
-        return addr < this.#rom!.length ? this.#rom![addr] : 0xff; // todo: check undefined behavior
-      case MemoryDivision.cartRAM:
-        return 0xff; // todo: check undefined behavior
-      default:
-        throw new Error('unimpl');
+    validateAddr(addr);
+
+    if (addr <= 0xdfff) {
+      // ROM, RAM
+      return this.#memory[addr];
+    } else if (addr <= 0xfdff) {
+      // mirror ram
+      return this.#memory[addr - 0x2000];
+    } else if (addr <= 0xfeff) {
+      // OAM, UNUSABLE
+      return this.#memory[addr];
+    } else if (addr <= 0xff7f) {
+      // IO
+
+      if (addr === MemoryRegister.LY) {
+        return 0x90; // todo: check hardcode
+      }
+      return this.#memory[addr];
+    } else {
+      // high RAM, IE
+      return this.#memory[addr];
     }
   }
   readDoubleByte(addr: number): number {
@@ -86,28 +59,66 @@ export class GameBoyMMU extends MMU {
   }
 
   writeByte(addr: number, val: number): void {
-    const [division, index] = transformAddr(addr);
-    switch (division) {
-      // internal usable area
-      case MemoryDivision.videoRAM:
-        this.#videoRAM[index] = val;
-      case MemoryDivision.workRAM:
-        this.#workRAM[index] = val;
-      case MemoryDivision.objectAttributeMemory:
-        this.#OAM[index] = val;
-      case MemoryDivision.IO:
-        this.#IO[index] = val;
-      case MemoryDivision.highRAM:
-        this.#highRAM[index] = val;
-      case MemoryDivision.IE:
-        this.#IE = val;
-      // cart
-      case MemoryDivision.fixedCartROM:
-        return; // readonly
-      case MemoryDivision.cartRAM:
-        return; // readonly
-      default:
-        throw new Error('unimpl');
+    validateAddr(addr);
+    const timer = this.#timer!;
+
+    if (addr <= 0x7fff) {
+      // ROM
+
+      return;
+    } else if (addr <= 0xdfff) {
+      // RAM
+
+      this.#memory[addr] = val;
+      return;
+    } else if (addr <= 0xfdff) {
+      // mirror RAM
+
+      this.#memory[addr - 0x2000] = val;
+      return;
+    } else if (addr <= 0xfeff) {
+      // OAM, UNUSABLE
+
+      this.#memory[addr] = val;
+      return;
+    } else if (addr <= 0xff7f) {
+      // IO
+
+      if (addr === MemoryRegister.SB) {
+        const char = String.fromCharCode(val);
+        logStr += char;
+        console.log(logStr);
+      }
+
+      switch (addr) {
+        case MemoryRegister.SB:
+        case MemoryRegister.SC:
+          this.#memory[addr] = val;
+          return;
+        case MemoryRegister.DIV:
+          this.#memory[addr] = 0;
+          timer.resetSystemCounter();
+          return;
+        case MemoryRegister.TIMA:
+        case MemoryRegister.TMA:
+          this.#memory[addr] = val;
+          return;
+        case MemoryRegister.TAC:
+          this.#memory[addr] = val;
+          timer.check();
+          return;
+        case MemoryRegister.IF:
+          this.#memory[addr] = val;
+          return;
+        case MemoryRegister.LY:
+          return; // todo: check this hardcode
+        default:
+          this.#memory[addr] = val;
+          return;
+      }
+    } else {
+      // high RAM, IE
+      this.#memory[addr] = val;
     }
   }
 
@@ -120,6 +131,30 @@ export class GameBoyMMU extends MMU {
   }
 
   loadRom(rom: Uint8Array): void {
-    this.#rom = rom;
+    for (let i = 0; i < rom.length; i++) {
+      this.#memory[i] = rom[i];
+    }
   }
+
+  setInterrupt(bitIndex: InterruptBit, bool: boolean) {
+    const oldIF = this.readByte(MemoryRegister.IF);
+    const newIF = setBit(oldIF, bitIndex, bool ? 1 : 0);
+    this.writeByte(MemoryRegister.IF, newIF);
+  }
+
+  timerHooks: MMUTimerHooks = {
+    getDIV: () => this.readByte(MemoryRegister.DIV),
+    setDIV: (val) => {
+      this.#memory[MemoryRegister.DIV] = val;
+    },
+    getTAC: () => this.readByte(MemoryRegister.TAC),
+    getTIMA: () => this.readByte(MemoryRegister.TIMA),
+    getTMA: () => this.readByte(MemoryRegister.TMA),
+    setTIMA: (val) => {
+      this.#memory[MemoryRegister.TIMA] = val;
+    },
+    triggerTimerInterrupt: () => {
+      this.setInterrupt(InterruptBit.TIMER, true);
+    },
+  };
 }

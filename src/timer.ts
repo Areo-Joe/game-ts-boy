@@ -22,18 +22,22 @@ export interface MMUTimerHooks {
 }
 
 export class Timer {
-  hooks: MMUTimerHooks;
-  systemCounter = 0;
-  lastTimerEdge = false;
+  #hooks: MMUTimerHooks | null = null;
+  #systemCounter = 0;
+  #lastTimerEdge = false;
 
-  constructor(hooks: MMUTimerHooks) {
-    this.hooks = hooks;
+  constructor(hooks?: MMUTimerHooks) {
+    hooks && (this.#hooks = hooks);
+  }
+
+  setHooks(hooks: MMUTimerHooks) {
+    this.#hooks = hooks;
   }
 
   resetSystemCounter() {
     // this is triggered when DIV is written outside Timer
     // MMU will first set DIV to 0, so we don't need to do that here
-    this.systemCounter = 0;
+    this.#systemCounter = 0;
     this.check();
   }
 
@@ -51,24 +55,25 @@ export class Timer {
     // 2. perform and operation and do the falling edge check
     // 3. if so, tick
     // 4. do not forget to save the edge status so that next time we can do falling edge check
-    const TAC = this.hooks.getTAC();
+    const TAC = this.#hooks!.getTAC();
     const systemCounterSelectBitIndex = TAC2SystemCounterSelectBitIndex(TAC);
     const selectedSystemCounterBit = getBit(
-      this.systemCounter,
+      this.#systemCounter,
       systemCounterSelectBitIndex
     );
     const timerEnabled = getBit(TAC, 2);
     const currentTimerEdge = Boolean(timerEnabled & selectedSystemCounterBit);
-    if (this.lastTimerEdge && !currentTimerEdge) {
+    if (this.#lastTimerEdge && !currentTimerEdge) {
       this.tick();
     }
-    this.lastTimerEdge = currentTimerEdge;
+    this.#lastTimerEdge = currentTimerEdge;
   }
 
   tick() {
     // for simplicity, temply ignore the 1 m-clock latency
-    const TMA = this.hooks.getTMA();
-    const TIMA = this.hooks.getTIMA();
+    const hooks = this.#hooks!;
+    const TMA = hooks.getTMA();
+    const TIMA = hooks.getTIMA();
     const newTIMA = performOperationOnOperandsWithBitLength(
       Operation.Add,
       BitLength.OneByte,
@@ -84,17 +89,12 @@ export class Timer {
     if (overflow) {
       // 1. set TIMA to TMA
       // 2. trigger Timer interrupt
-      this.hooks.setTIMA(TMA);
-      this.hooks.triggerTimerInterrupt();
+      hooks.setTIMA(TMA);
+      hooks.triggerTimerInterrupt();
     } else {
       // 1. TIMA increase
-      this.hooks.setTIMA(newTIMA);
+      hooks.setTIMA(newTIMA);
     }
-    // logger.log(
-    //   `old tima: ${TIMA.toString(16)}, new tima: ${this.hooks
-    //     .getTIMA()
-    //     .toString(16)} overflow: ${overflow}`
-    // );
   }
 
   private increaseSystemCounter(m: number) {
@@ -102,12 +102,12 @@ export class Timer {
     const result = performOperationOnOperandsWithBitLength(
       Operation.Add,
       14,
-      this.systemCounter,
+      this.#systemCounter,
       m
     );
 
-    this.systemCounter = result;
-    this.hooks.setDIV(((allOnes(BitLength.OneByte) << 6) & result) >> 6);
+    this.#systemCounter = result;
+    this.#hooks!.setDIV(((allOnes(BitLength.OneByte) << 6) & result) >> 6);
   }
 }
 
