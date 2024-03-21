@@ -1,118 +1,118 @@
-import { MMU } from './cpu';
+import { shouldSetCarryFlag } from './cpu';
 import {
-  DIV_ADDR,
-  TIMA_ADDR,
-  TMA_ADDR,
-  TAC_ADDR,
-  IF_ADDR,
-  InterruptBit,
-} from './const';
-import { getBit, setBit } from './utils';
+  BitLength,
+  Operation,
+  allOnes,
+  getBit,
+  performOperationOnOperandsWithBitLength,
+} from './utils';
 
-export abstract class GBTimer {
-  abstract inc(mClock: number): void;
+export interface MMUTimerHooks {
+  getDIV: () => number;
+  setDIV: (val: number) => void;
+
+  getTMA: () => number;
+
+  getTIMA: () => number;
+  setTIMA: (val: number) => void;
+
+  getTAC: () => number;
+
+  triggerTimerInterrupt: VoidFunction;
 }
 
-export class GBTimerImpl extends GBTimer {
-  stopped = false;
-  #memory: MMU;
-  #mLeft = {
-    DIV: 0,
-    TIMA: 0,
-  };
+export class Timer {
+  hooks: MMUTimerHooks;
+  systemCounter = 0;
+  lastTimerEdge = false;
 
-  constructor(memory: MMU) {
-    super();
-    this.#memory = memory;
-    this.DIV = memory.readByte(DIV_ADDR);
-    this.TIMA = memory.readByte(TIMA_ADDR);
-    this.TAC = memory.readByte(TAC_ADDR);
-    this.TMA = memory.readByte(TMA_ADDR);
+  constructor(hooks: MMUTimerHooks) {
+    this.hooks = hooks;
   }
 
-  inc(mClock: number): void {
-    if (!this.stopped) {
-      const mLeftDIV = this.#mLeft.DIV + mClock;
-      const DIVIncreasement = Math.floor(mLeftDIV / 64);
-      this.#mLeft.DIV = mLeftDIV % 64;
-      const DIV = this.DIV;
-      const newDIV = DIV + DIVIncreasement;
-      this.DIV = newDIV & 0xff;
+  resetSystemCounter() {
+    // this is triggered when DIV is written outside Timer
+    // MMU will first set DIV to 0, so we don't need to do that here
+    this.systemCounter = 0;
+    this.check();
+  }
+
+  increaseMClocks(m: number) {
+    for (let i = 0; i < m; i++) {
+      // 1. increase system counter
+      // 2. check whether to tick
+      this.increaseSystemCounter(1);
+      this.check();
     }
+  }
 
-    const TIMASpeed = this.TIMASpeed;
-
-    if (TIMASpeed === 0) {
-      return;
+  check() {
+    // 1. get the selected bit and timer enable bit
+    // 2. perform and operation and do the falling edge check
+    // 3. if so, tick
+    // 4. do not forget to save the edge status so that next time we can do falling edge check
+    const TAC = this.hooks.getTAC();
+    const systemCounterSelectBitIndex = TAC2SystemCounterSelectBitIndex(TAC);
+    const selectedSystemCounterBit = getBit(
+      this.systemCounter,
+      systemCounterSelectBitIndex
+    );
+    const timerEnabled = getBit(TAC, 2);
+    const currentTimerEdge = Boolean(timerEnabled & selectedSystemCounterBit);
+    if (this.lastTimerEdge && !currentTimerEdge) {
+      this.tick();
     }
+    this.lastTimerEdge = currentTimerEdge;
+  }
 
-    const mLeft = this.#mLeft.TIMA + mClock;
-    const TIMAIncreasement = Math.floor(mLeft / TIMASpeed);
-    this.#mLeft.TIMA = mLeft % TIMASpeed;
-    const TIMA = this.TIMA;
-    const newTIMA = TIMA + TIMAIncreasement;
-    if (newTIMA > 0xff) {
-      // interrupt
-      this.#memory.writeByte(
-        IF_ADDR,
-        setBit(this.#memory.readByte(IF_ADDR), InterruptBit.TIMER, 1)
-      );
-      this.TIMA = this.TMA;
+  tick() {
+    // for simplicity, temply ignore the 1 m-clock latency
+    const TMA = this.hooks.getTMA();
+    const TIMA = this.hooks.getTIMA();
+    const newTIMA = performOperationOnOperandsWithBitLength(
+      Operation.Add,
+      BitLength.OneByte,
+      TIMA,
+      1
+    );
+    const overflow = shouldSetCarryFlag(
+      Operation.Add,
+      BitLength.OneByte,
+      TIMA,
+      1
+    );
+    if (overflow) {
+      // 1. set TIMA to TMA
+      // 2. trigger Timer interrupt
+      this.hooks.setTIMA(TMA);
+      this.hooks.triggerTimerInterrupt();
     } else {
-      this.TIMA = newTIMA;
+      // 1. TIMA increase
+      this.hooks.setTIMA(newTIMA);
     }
+    // logger.log(
+    //   `old tima: ${TIMA.toString(16)}, new tima: ${this.hooks
+    //     .getTIMA()
+    //     .toString(16)} overflow: ${overflow}`
+    // );
   }
 
-  // 64 * m-clock = 1 * DIV
-  private get DIV() {
-    return this.#memory.readByte(DIV_ADDR, true);
-  }
+  private increaseSystemCounter(m: number) {
+    // increase the system counter and sync the DIV to MMU
+    const result = performOperationOnOperandsWithBitLength(
+      Operation.Add,
+      14,
+      this.systemCounter,
+      m
+    );
 
-  private set DIV(val: number) {
-    this.#memory.writeDIV(val);
+    this.systemCounter = result;
+    this.hooks.setDIV(((allOnes(BitLength.OneByte) << 6) & result) >> 6);
   }
+}
 
-  private get TIMA() {
-    return this.#memory.readByte(TIMA_ADDR);
-  }
+const TAC2SystemCounterSelectBitIndexMap = [7, 1, 3, 5];
 
-  private set TIMA(val: number) {
-    this.#memory.writeByte(TIMA_ADDR, val);
-  }
-
-  private get TMA() {
-    return this.#memory.readByte(TMA_ADDR);
-  }
-
-  private set TMA(val: number) {
-    this.#memory.writeByte(TMA_ADDR, val);
-  }
-
-  private get TAC() {
-    return this.#memory.readByte(TAC_ADDR);
-  }
-
-  private set TAC(val: number) {
-    this.#memory.writeByte(TAC_ADDR, val);
-  }
-
-  // speed * m-clock = 1 * TIMA
-  private get TIMASpeed() {
-    const TAC = this.TAC;
-    if (getBit(TAC, 2) === 0) {
-      return 0;
-    }
-    switch (TAC & 0b11) {
-      case 0b00:
-        return 256;
-      case 0b01:
-        return 4;
-      case 0b10:
-        return 16;
-      case 0b11:
-        return 64;
-      default:
-        throw new Error('unreachable!');
-    }
-  }
+function TAC2SystemCounterSelectBitIndex(TAC: number) {
+  return TAC2SystemCounterSelectBitIndexMap[TAC & 0b11];
 }
