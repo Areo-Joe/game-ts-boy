@@ -10,6 +10,6 @@
     "typescript": "^5.0.0"
   },
   "scripts": {
-    "diff": "cd src && bun index.ts && cd .. && bun diff.ts"
+    "bundle:web": "bun build ./src/runner/web/* --outdir ./web"
   }
 }
