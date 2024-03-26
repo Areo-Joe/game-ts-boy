@@ -40,8 +40,8 @@ export class GameBoyMMU {
     } else if (addr <= 0xfe9f) {
       // OAM
       return this.#memory[addr];
-    }  else if (addr <= 0xfeef) {
-        // UNUSABLE
+    } else if (addr <= 0xfeef) {
+      // UNUSABLE
       return this.#memory[addr];
     } else if (addr <= 0xff7f) {
       // IO
@@ -79,8 +79,13 @@ export class GameBoyMMU {
 
       this.#memory[addr - 0x2000] = val;
       return;
+    } else if (addr <= 0xfe9f) {
+      // OAM
+
+      this.#memory[addr] = val;
+      return;
     } else if (addr <= 0xfeff) {
-      // OAM, UNUSABLE
+      // UNUSABLE
 
       this.#memory[addr] = val;
       return;

@@ -9,9 +9,11 @@ enum MemoryRegister {
 
   IF = 0xff0f,
   LCDC = 0xff40,
+  STAT = 0xff41,
   SCY = 0xff42,
   SCX = 0xff43,
   LY = 0xff44,
+  DMA = 0xff46,
   BGP = 0xff47,
   OBP0 = 0xff48,
   OBP1 = 0xff49,
