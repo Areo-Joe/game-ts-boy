@@ -1,4 +1,3 @@
-import { CPUState } from '../jsmooTest';
 import { GameBoyMMU } from './mmu';
 import {
   INTERRUPT_HANDLER_ADDR_MAP,
@@ -701,61 +700,6 @@ export class CPU {
     this.SET_7_HLa,
     this.SET_7_A,
   ];
-
-  setState({ pc, sp, a, b, c, d, e, f, h, l, ram }: CPUState) {
-    this.#registers.pc = pc;
-    this.#registers.a = a;
-    this.#registers.f = f;
-    this.#registers.b = b;
-    this.#registers.c = c;
-    this.#registers.d = d;
-    this.#registers.e = e;
-    this.#registers.h = h;
-    this.#registers.l = l;
-    this.#registers.sp = sp;
-    for (let i = 0; i < ram.length; i++) {
-      this.#memory.writeByte(ram[i][0], ram[i][1]);
-    }
-  }
-
-  compareState({ pc, sp, a, b, c, d, e, f, h, l, ram }: CPUState) {
-    if (
-      this.#registers.pc === pc &&
-      this.#registers.a === a &&
-      this.#registers.f === f &&
-      this.#registers.b === b &&
-      this.#registers.c === c &&
-      this.#registers.d === d &&
-      this.#registers.e === e &&
-      this.#registers.h === h &&
-      this.#registers.l === l &&
-      this.#registers.sp === sp
-    ) {
-      const localRam: Array<[number, number]> = [];
-      let same = true;
-      for (let i = 0; i < ram.length; i++) {
-        const val = this.#memory.readByte(ram[i][0]);
-        localRam.push([ram[i][0], val]);
-        if (val !== ram[i][1]) {
-          same = false;
-        }
-      }
-      return same
-        ? true
-        : JSON.stringify({ registers: this.#registers, ram: localRam });
-    } else {
-      const localRam: Array<[number, number]> = [];
-      for (let i = 0; i < ram.length; i++) {
-        const val = this.#memory.readByte(ram[i][0]);
-        localRam.push([ram[i][0], val]);
-      }
-      return JSON.stringify(
-        { registers: this.#registers, ram: localRam },
-        null,
-        4
-      );
-    }
-  }
 
   spendTime(mClock: number) {
     this.#timer.increaseMClocks(mClock);
