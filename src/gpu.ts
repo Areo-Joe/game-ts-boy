@@ -95,6 +95,7 @@ export class GPU {
         this.updateGraphicData();
       } else if (newMode === GPUMode.VerticalBlank) {
         // push graphic data to outer rendering interface
+        this.#MMU!.GPUHooks.triggerVBlankInterrupt();
         this.pushGraphicData();
       }
     }

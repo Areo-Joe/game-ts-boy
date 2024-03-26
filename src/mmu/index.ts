@@ -236,6 +236,9 @@ export class GameBoyMMU {
       this.#memory[MemoryRegister.STAT] = newSTAT;
       this.updateSTATInterruptLine();
     },
+    triggerVBlankInterrupt: () => {
+      this.setInterrupt(InterruptBit.V_BLANK, true);
+    },
   };
 }
 
@@ -250,4 +253,5 @@ interface MMUGPUHooks {
   getWX: () => number;
   getLY: () => number;
   setLY: (val: number) => void;
+  triggerVBlankInterrupt: VoidFunction;
 }
