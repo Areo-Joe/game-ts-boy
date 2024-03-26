@@ -1,6 +1,6 @@
 import { InterruptBit } from '../interruptConst';
 import { MemoryRegister } from '../mRegisters';
-import { setBit } from '../utils';
+import { getBit, setBit } from '../utils';
 import { MMUTimerHooks, Timer } from '../timer';
 
 let logStr = '';
@@ -19,6 +19,8 @@ export enum MMUMode {
 export class GameBoyMMU {
   #memory = new Uint8Array(0x10000);
   #timer: Timer | null = null;
+
+  STATInterruptLine = false;
 
   constructor(timer?: Timer) {
     timer && (this.#timer = timer);
@@ -118,8 +120,26 @@ export class GameBoyMMU {
         case MemoryRegister.IF:
           this.#memory[addr] = val;
           return;
+        case MemoryRegister.STAT:
+          const oldSTAT = this.readByte(MemoryRegister.STAT);
+          const finalVal = (val & 0b1111_1000) | (oldSTAT & 0b111); // The first 3 bit is readonly
+          this.#memory[addr] = finalVal;
+          this.updateSTATInterruptLine();
+          return;
         case MemoryRegister.LY:
-          return; // todo: check this hardcode
+          // LY is readonly, it is writable only to GPU
+          return;
+        case MemoryRegister.LYC:
+          this.#memory[addr] = val;
+          const LY = this.readByte(MemoryRegister.LY);
+          const currentSTAT = this.readByte(MemoryRegister.STAT);
+          this.#memory[MemoryRegister.STAT] = setBit(
+            currentSTAT,
+            2,
+            val === LY ? 1 : 0
+          );
+          this.updateSTATInterruptLine();
+          return;
         default:
           this.#memory[addr] = val;
           return;
@@ -150,6 +170,30 @@ export class GameBoyMMU {
     this.writeByte(MemoryRegister.IF, newIF);
   }
 
+  /**
+   * Calculate the latest STAT interrupt line based on current state and update it.
+   * If the update cause a rising edge, an interrupt should be fired.
+   * The function should be called after any operation that may possibly change the STAT interrupt line:
+   * - write to STAT register
+   * - write to LYC register thus change STAT.2
+   * - PPU scanline change thus change LY and then STAT.2
+   * - PPU mode change thus change LCDC[0,1]
+   */
+  updateSTATInterruptLine() {
+    const STAT = this.#memory[MemoryRegister.STAT];
+    const LYEqLYC = getBit(STAT, 2) === 1;
+    const GPUMode = (getBit(STAT, 1) << 1) + getBit(STAT, 0);
+    const newSTATInterruptLine =
+      (getBit(STAT, 6) === 1 && LYEqLYC) ||
+      (getBit(STAT, 5) === 1 && GPUMode == 2) ||
+      (getBit(STAT, 4) === 1 && GPUMode == 1) ||
+      (getBit(STAT, 3) === 1 && GPUMode == 0);
+    if (this.STATInterruptLine === false && newSTATInterruptLine) {
+      this.setInterrupt(InterruptBit.LCD, true);
+    }
+    this.STATInterruptLine = newSTATInterruptLine;
+  }
+
   timerHooks: MMUTimerHooks = {
     getDIV: () => this.readByte(MemoryRegister.DIV),
     setDIV: (val) => {
@@ -165,4 +209,45 @@ export class GameBoyMMU {
       this.setInterrupt(InterruptBit.TIMER, true);
     },
   };
+
+  GPUHooks: MMUGPUHooks = {
+    getSTAT: () => this.readByte(MemoryRegister.STAT),
+    setSTAT: (val: number) => {
+      this.#memory[MemoryRegister.STAT] = val;
+      this.updateSTATInterruptLine();
+    },
+    getLCDC: () => this.readByte(MemoryRegister.LCDC),
+    getSCX: () => this.readByte(MemoryRegister.SCX),
+    getSCY: () => this.readByte(MemoryRegister.SCY),
+    getBGP: () => this.readByte(MemoryRegister.BGP),
+    getWY: () => this.readByte(MemoryRegister.WY),
+    getWX: () => this.readByte(MemoryRegister.WX),
+    getLY: () => this.readByte(MemoryRegister.LY),
+    setLY: (val: number) => {
+      // LY is readonly so we need to provide a way for GPU to change that
+      this.#memory[MemoryRegister.LY] = val;
+
+      // update STAT.2
+      const LYC = this.readByte(MemoryRegister.LYC);
+      const STAT = this.readByte(MemoryRegister.STAT);
+      const newSTAT = setBit(STAT, 2, LYC === val ? 1 : 0);
+
+      // manually set STAT, whose first 2 bits are readonly
+      this.#memory[MemoryRegister.STAT] = newSTAT;
+      this.updateSTATInterruptLine();
+    },
+  };
+}
+
+interface MMUGPUHooks {
+  getSTAT: () => number;
+  setSTAT: (val: number) => void;
+  getLCDC: () => number;
+  getSCX: () => number;
+  getSCY: () => number;
+  getBGP: () => number;
+  getWY: () => number;
+  getWX: () => number;
+  getLY: () => number;
+  setLY: (val: number) => void;
 }

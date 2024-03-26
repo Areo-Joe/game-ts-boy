@@ -43,11 +43,11 @@ enum GPUMode {
 }
 
 const HORIZONTAL_BLANK_DOT = 204;
-const VERTICAL_BLANK_DOT = 4560;
 const OAM_SCAN_DOT = 80;
 const DRAW_PIXEL_ROW_DOT = 172;
 
 const SCANLINE_DOT = HORIZONTAL_BLANK_DOT + OAM_SCAN_DOT + DRAW_PIXEL_ROW_DOT;
+const VERTICAL_BLANK_DOT = SCANLINE_DOT * 10;
 const RENDERING_DOT = SCANLINE_DOT * 144;
 const FRAME_DOT = RENDERING_DOT + VERTICAL_BLANK_DOT;
 
@@ -62,21 +62,94 @@ export class GPU {
 
   constructor() {}
 
+  /**
+   * Time is spent and this function updates the PPU state accordingly.
+   * Mode and scanline may step forward.
+   * If any of these happens, it should sync to the MMU, which should be the single source of truth.
+   * If mode changed to horizontal blank, graphic data should be updated.
+   * If mode changed to vertical blank, graphic data should be pushed to the outer system(to be rendered).
+   */
   step(mClock: number) {
     const newDot = (this.#internalDot + mClock * 4) % FRAME_DOT;
     this.#internalDot = newDot;
-    const mode = this.mode;
-    if (mode === GPUMode.HorizontalBlank) {
-      // update graphic data
-      this.updateGraphicData();
-    } else if (mode === GPUMode.VerticalBlank) {
-      // push graphic data to outer rendering interface
-      this.pushGraphicData();
+
+    const oldMode = this.mode;
+    const oldScanline = this.scanline;
+
+    const newMode = this.calculateModeWithDot(newDot);
+    const newScanline = this.calculateActiveScanlineWithDot(newDot);
+
+    const modeChanged = oldMode !== newMode;
+    const scanlineChanged = oldScanline !== newScanline;
+
+    if (modeChanged) {
+      this.mode = newMode;
+    }
+    if (scanlineChanged) {
+      this.scanline = newScanline;
+    }
+
+    if (modeChanged) {
+      if (newMode === GPUMode.HorizontalBlank) {
+        // update graphic data
+        this.updateGraphicData();
+      } else if (newMode === GPUMode.VerticalBlank) {
+        // push graphic data to outer rendering interface
+        this.pushGraphicData();
+      }
     }
   }
 
   get mode() {
-    const dot = this.#internalDot;
+    const STAT = this.#MMU!.GPUHooks.getSTAT();
+    const GPUMode = (getBit(STAT, 1) << 1) + getBit(STAT, 0);
+    return GPUMode as GPUMode;
+  }
+
+  /**
+   * Only provide the latest value in GPU setter, side effects like updating relative STAT bits are done by MMU.
+   */
+  set mode(val) {
+    const oldSTAT = this.#MMU!.GPUHooks.getSTAT();
+    this.#MMU!.GPUHooks.setSTAT((oldSTAT & 0b1111_1100) | (val & 0b11));
+  }
+
+  get scanline() {
+    return this.#MMU!.GPUHooks.getLY();
+  }
+
+  /**
+   * Only provide the latest value in GPU setter, side effects like updating relative STAT bits are done by MMU.
+   */
+  set scanline(val) {
+    this.#MMU!.GPUHooks.setLY(val);
+  }
+
+  get LCDC() {
+    return this.#MMU!.GPUHooks.getLCDC();
+  }
+
+  get SCX() {
+    return this.#MMU!.GPUHooks.getSCX();
+  }
+
+  get SCY() {
+    return this.#MMU!.GPUHooks.getSCY();
+  }
+
+  get BGP() {
+    return this.#MMU!.GPUHooks.getBGP();
+  }
+
+  get WY() {
+    return this.#MMU!.GPUHooks.getWY();
+  }
+
+  get WX() {
+    return this.#MMU!.GPUHooks.getWX();
+  }
+
+  calculateModeWithDot(dot: number) {
     if (dot < RENDERING_DOT) {
       const dotInOneScanline = dot % SCANLINE_DOT;
       if (dotInOneScanline < OAM_SCAN_DOT) {
@@ -92,32 +165,8 @@ export class GPU {
     }
   }
 
-  get currentLine() {
-    const dot = this.#internalDot;
-    if (dot < RENDERING_DOT) {
-      return Math.floor(dot / SCANLINE_DOT);
-    } else {
-      throw new Error('current line should not be called during v blank!');
-    }
-  }
-
-  get LCDC() {
-    return this.#MMU!.readByte(MemoryRegister.LCDC);
-  }
-  get SCX() {
-    return this.#MMU!.readByte(MemoryRegister.SCX);
-  }
-  get SCY() {
-    return this.#MMU!.readByte(MemoryRegister.SCY);
-  }
-  get BGP() {
-    return this.#MMU!.readByte(MemoryRegister.BGP);
-  }
-  get WY() {
-    return this.#MMU!.readByte(MemoryRegister.WY);
-  }
-  get WX() {
-    return this.#MMU!.readByte(MemoryRegister.WX);
+  calculateActiveScanlineWithDot(dot: number) {
+    return Math.floor(dot / SCANLINE_DOT);
   }
 
   setGraphicDataHandler(fn: (graphicData: Uint8ClampedArray) => unknown) {
@@ -136,7 +185,7 @@ export class GPU {
    * 2. For every pixel on this row, find their color and put update it to the graphic data
    */
   updateGraphicData() {
-    const currentLine = this.currentLine;
+    const currentLine = this.scanline;
     const LCDC = this.LCDC;
     const BWEnabled = getBit(LCDC, 0) === 1; // BG/Window Enabled
     const objectEnabled = getBit(LCDC, 1) === 1;

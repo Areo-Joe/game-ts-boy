@@ -13,6 +13,7 @@ enum MemoryRegister {
   SCY = 0xff42,
   SCX = 0xff43,
   LY = 0xff44,
+  LYC = 0xff45,
   DMA = 0xff46,
   BGP = 0xff47,
   OBP0 = 0xff48,
