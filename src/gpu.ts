@@ -501,10 +501,10 @@ function getWindowBoundingPixelCols(windowLeftMostPixelX: number) {
   }
 }
 const ColorRGBA = {
-  white: [255, 255, 255, 1],
-  lightGray: [211, 211, 211, 1],
-  darkGray: [169, 169, 169, 1],
-  black: [0, 0, 0, 1],
+  white: [255, 255, 255, 255],
+  lightGray: [211, 211, 211, 255],
+  darkGray: [169, 169, 169, 255],
+  black: [0, 0, 0, 255],
 };
 const colors = [
   ColorRGBA.white,
