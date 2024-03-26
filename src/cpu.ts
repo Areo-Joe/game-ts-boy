@@ -56,18 +56,6 @@ export class CPU {
     f: 0, // flag,
     sp: 0, // stack pointer
     pc: 0, // program counter
-
-    // measures the time used by each instruction, corresponding to m/t clock
-    m: 0,
-    t: 0,
-  };
-
-  // CPU clock, speed(m-clock) === 1 / 4 * speed(t-clock)
-  // m-clock is the base speed
-  // accumulated time
-  #clock = {
-    m: 0,
-    t: 0,
   };
 
   #opMap = [
@@ -769,6 +757,11 @@ export class CPU {
     }
   }
 
+  spendTime(mClock: number) {
+    this.#timer.increaseMClocks(mClock);
+    this.#gpu.step(mClock);
+  }
+
   runOnce() {
     const opcode = this.readFromPcAndIncPc();
     const func = this.#opMap[opcode];
@@ -799,16 +792,17 @@ export class CPU {
           );
           // jump to handler
           this.#registers.pc = INTERRUPT_HANDLER_ADDR_MAP.get(interruptBit)!;
-          this.#timer.increaseMClocks(5);
+          this.spendTime(5);
           break;
         }
       }
     };
+
     while (true) {
       if (!this.#halted) {
         this.#EI_DELAY = false;
         const timeConsumed = this.runOnce();
-        this.#timer.increaseMClocks(timeConsumed);
+        this.spendTime(timeConsumed);
 
         if (this.#EI_DELAY) {
           continue;
@@ -820,7 +814,7 @@ export class CPU {
         const IF = this.IF;
         checkHandler(IE, IF);
       } else {
-        this.#timer.increaseMClocks(1);
+        this.spendTime(1);
         const IE = this.IE;
         const IF = this.IF;
         if ((IE & IF) === 0) {
@@ -840,18 +834,10 @@ export class CPU {
     (
       'a b c d e f h l pc sp m t'.split(' ') as (keyof typeof registers)[]
     ).forEach((r) => (registers[r] = 0));
-
-    this.#clock.m = 0;
-    this.#clock.t = 0;
   }
 
   clearFlag() {
     this.#registers.f = 0;
-  }
-
-  private spendTime(mClock: number) {
-    this.#registers.t = mClock * 4;
-    this.#registers.m = mClock;
   }
 
   private joinTwoByte(higherByte: number, lowerByte: number) {
