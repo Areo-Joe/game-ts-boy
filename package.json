@@ -10,6 +10,7 @@
     "typescript": "^5.0.0"
   },
   "scripts": {
-    "bundle:web": "bun build ./src/runner/web/* --outdir ./web"
+    "bundle:web": "bun build ./src/runner/web/* --outdir ./web",
+    "watch:web": "bun build ./src/runner/web/* --outdir ./web --watch"
   }
 }
