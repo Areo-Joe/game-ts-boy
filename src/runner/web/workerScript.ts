@@ -15,6 +15,7 @@ gpu.setGraphicDataHandler((g) => {
   postMessage(g);
 });
 const cpu = new CPU(mmu, timer, gpu);
+mmu.setSpendTime((m) => cpu.spendTime(m));
 
 onmessage = (e) => {
   const buffer = e.data.buffer as ArrayBuffer;

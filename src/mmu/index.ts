@@ -20,6 +20,11 @@ export class GameBoyMMU {
   #memory = new Uint8Array(0x10000);
   #timer: Timer | null = null;
 
+  spendTime: null | ((mClock: number) => void) = null;
+  setSpendTime(fn: (mClock: number) => void) {
+    this.spendTime = fn;
+  }
+
   STATInterruptLine = false;
 
   constructor(timer?: Timer) {
@@ -139,6 +144,20 @@ export class GameBoyMMU {
             val === LY ? 1 : 0
           );
           this.updateSTATInterruptLine();
+          return;
+        case MemoryRegister.DMA:
+          this.#memory[addr] = val;
+
+          if (0x00 <= val && val <= 0xdf) {
+            // start a DMA transfer
+            const sourceStart = val << 8;
+            const destStart = 0xfe00;
+            for (let i = 0; i <= 0x9f; i++) {
+              this.#memory[destStart + i] = this.#memory[sourceStart + i];
+            }
+            this.spendTime!(160);
+          }
+
           return;
         default:
           this.#memory[addr] = val;
