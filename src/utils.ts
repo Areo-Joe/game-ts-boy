@@ -178,3 +178,48 @@ export enum BitLength {
   OneByte = 8,
   DoubleByte = 16,
 }
+
+export const debounce = <T>(fn: (...props: T[]) => unknown, time: number) => {
+  let canCall = true;
+  return (...props: T[]) => {
+    if (canCall) {
+      console.log('yeah i called', fn, ...props);
+      fn(...props);
+      canCall = false;
+      console.log('time is', time);
+      setTimeout(() => {
+        console.log('yeah im back');
+        canCall = true;
+      }, time);
+    }
+  };
+};
+
+export const debounceSync = <T>(
+  fn: (...props: T[]) => unknown,
+  time: number
+) => {
+  let lastCalledTime = Date.now();
+  return (...props: T[]) => {
+    const now = Date.now();
+    const canCall = now - lastCalledTime >= time;
+    if (canCall) {
+      fn(...props);
+      lastCalledTime = now;
+    }
+  };
+};
+
+const logIt = (...props: any[]) => {
+  console.log(...props);
+};
+
+export class DebounceLoggerSync {
+  logger = debounceSync(logIt, 100);
+  constructor() {}
+}
+
+export class DebounceLogger {
+  logger = debounce(logIt, 100);
+  constructor() {}
+}
