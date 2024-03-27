@@ -183,12 +183,9 @@ export const debounce = <T>(fn: (...props: T[]) => unknown, time: number) => {
   let canCall = true;
   return (...props: T[]) => {
     if (canCall) {
-      console.log('yeah i called', fn, ...props);
       fn(...props);
       canCall = false;
-      console.log('time is', time);
       setTimeout(() => {
-        console.log('yeah im back');
         canCall = true;
       }, time);
     }
