@@ -40,7 +40,7 @@ export class CPU {
   }
 
   #IME = false; // controls the overall interrupt's availablility
-  #EI_DELAY = false; // EI works after 1 instruction dealy
+  #EI_DELAY = false; // EI works after 1 instruction delay
 
   #registers = {
     // for computation
@@ -819,11 +819,11 @@ export class CPU {
     }
   }
 
-  private get substractionFlag() {
+  private get subtractionFlag() {
     return (this.#registers.f & 0x40) !== 0;
   }
 
-  private set substractionFlag(bool: boolean) {
+  private set subtractionFlag(bool: boolean) {
     if (bool) {
       this.#registers.f |= 0x40;
     } else {
@@ -988,7 +988,7 @@ export class CPU {
     const result = addWithOneByte(val, 1);
     this.#registers[register] = result;
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
       Operation.Add,
       BitLength.OneByte,
@@ -1004,7 +1004,7 @@ export class CPU {
     const result = minusWithOneByte(val, 1);
     this.#registers[register] = result;
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = true;
+    this.subtractionFlag = true;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
       Operation.Minus,
       BitLength.OneByte,
@@ -1041,7 +1041,7 @@ export class CPU {
       targetLowerByteRegister,
       result
     );
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     // yeah 12 is confusingly correct
     this.halfCarryFlag = shouldSetCarryFlag(Operation.Add, 12, target, source);
     this.carryFlag = shouldSetCarryFlag(
@@ -1070,7 +1070,7 @@ export class CPU {
       targetLowerByteRegister,
       result
     );
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
       Operation.Add,
       BitLength.DoubleByte,
@@ -1134,7 +1134,7 @@ export class CPU {
     const result = addWithOneByte(val, 1);
     this.#memory.writeByte(addr, result);
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
       Operation.Add,
       BitLength.OneByte,
@@ -1157,7 +1157,7 @@ export class CPU {
     const result = minusWithOneByte(val, 1);
     this.#memory.writeByte(addr, result);
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = true;
+    this.subtractionFlag = true;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
       Operation.Minus,
       BitLength.OneByte,
@@ -1202,7 +1202,7 @@ export class CPU {
     this.#registers[targetRegister] = result;
 
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
       Operation.Add,
       BitLength.OneByte,
@@ -1236,7 +1236,7 @@ export class CPU {
     this.#registers[targetRegister] = result;
 
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
       Operation.Add,
       BitLength.OneByte,
@@ -1264,7 +1264,7 @@ export class CPU {
     this.#registers[targetRegister] = result;
 
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
       Operation.Add,
       BitLength.OneByte,
@@ -1300,7 +1300,7 @@ export class CPU {
     this.#registers[targetRegister] = result;
 
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
       Operation.Add,
       BitLength.OneByte,
@@ -1330,7 +1330,7 @@ export class CPU {
     this.#registers[targetRegister] = result;
 
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = true;
+    this.subtractionFlag = true;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
       Operation.Minus,
       BitLength.OneByte,
@@ -1364,7 +1364,7 @@ export class CPU {
     this.#registers[targetRegister] = result;
 
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = true;
+    this.subtractionFlag = true;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
       Operation.Minus,
       BitLength.OneByte,
@@ -1392,7 +1392,7 @@ export class CPU {
     this.#registers[targetRegister] = result;
 
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = true;
+    this.subtractionFlag = true;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
       Operation.Minus,
       BitLength.OneByte,
@@ -1428,7 +1428,7 @@ export class CPU {
     this.#registers[targetRegister] = result;
 
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = true;
+    this.subtractionFlag = true;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
       Operation.Minus,
       BitLength.OneByte,
@@ -1458,7 +1458,7 @@ export class CPU {
     this.#registers[targetRegister] = result;
 
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = true;
     this.carryFlag = false;
 
@@ -1482,7 +1482,7 @@ export class CPU {
     this.#registers[targetRegister] = result;
 
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = true;
     this.carryFlag = false;
 
@@ -1500,7 +1500,7 @@ export class CPU {
     this.#registers[targetRegister] = result;
 
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = false;
     this.carryFlag = false;
 
@@ -1524,7 +1524,7 @@ export class CPU {
     this.#registers[targetRegister] = result;
 
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = false;
     this.carryFlag = false;
 
@@ -1542,7 +1542,7 @@ export class CPU {
     this.#registers[targetRegister] = result;
 
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = false;
     this.carryFlag = false;
 
@@ -1566,7 +1566,7 @@ export class CPU {
     this.#registers[targetRegister] = result;
 
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = false;
     this.carryFlag = false;
 
@@ -1583,7 +1583,7 @@ export class CPU {
     const minusResult = minusWithOneByte(target, source); // we don't set the result here
 
     this.zeroFlag = shouldSetZeroFlag(minusResult);
-    this.substractionFlag = true;
+    this.subtractionFlag = true;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
       Operation.Minus,
       BitLength.OneByte,
@@ -1616,7 +1616,7 @@ export class CPU {
     const minusResult = minusWithOneByte(target, source); // we don't set the result here
 
     this.zeroFlag = shouldSetZeroFlag(minusResult);
-    this.substractionFlag = true;
+    this.subtractionFlag = true;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
       Operation.Minus,
       BitLength.OneByte,
@@ -1682,7 +1682,7 @@ export class CPU {
     this.#registers[targetRegister] = result;
 
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
       Operation.Add,
       BitLength.OneByte,
@@ -1706,7 +1706,7 @@ export class CPU {
     const result = addWithOneByte(registerVal, val, this.carryFlag ? 1 : 0);
 
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
       Operation.Add,
       BitLength.OneByte,
@@ -1735,7 +1735,7 @@ export class CPU {
     this.#registers[targetRegister] = result;
 
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = true;
+    this.subtractionFlag = true;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
       Operation.Minus,
       BitLength.OneByte,
@@ -1761,7 +1761,7 @@ export class CPU {
     this.#registers[targetRegister] = result;
 
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = true;
+    this.subtractionFlag = true;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
       Operation.Minus,
       BitLength.OneByte,
@@ -1862,7 +1862,7 @@ export class CPU {
     this.#registers[register] = result;
     this.carryFlag = lastBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = false;
 
     return 2 as const;
@@ -1882,7 +1882,7 @@ export class CPU {
     this.#memory.writeByte(addr, result);
     this.carryFlag = lastBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = false;
 
     return 4 as const;
@@ -1895,7 +1895,7 @@ export class CPU {
     this.#registers[register] = result;
     this.carryFlag = firstBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = false;
 
     return 2 as const;
@@ -1915,7 +1915,7 @@ export class CPU {
     this.#memory.writeByte(addr, result);
     this.carryFlag = firstBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = false;
 
     return 4 as const;
@@ -1929,7 +1929,7 @@ export class CPU {
     this.#registers[register] = result;
     this.carryFlag = lastBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = false;
 
     return 2 as const;
@@ -1950,7 +1950,7 @@ export class CPU {
     this.#memory.writeByte(addr, result);
     this.carryFlag = lastBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = false;
 
     return 4 as const;
@@ -1964,7 +1964,7 @@ export class CPU {
     this.#registers[register] = result;
     this.carryFlag = firstBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = false;
 
     return 2 as const;
@@ -1985,7 +1985,7 @@ export class CPU {
     this.#memory.writeByte(addr, result);
     this.carryFlag = firstBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = false;
 
     return 4 as const;
@@ -1998,7 +1998,7 @@ export class CPU {
     this.#registers[register] = result;
     this.carryFlag = lastBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = false;
 
     return 2 as const;
@@ -2018,7 +2018,7 @@ export class CPU {
     this.#memory.writeByte(addr, result);
     this.carryFlag = lastBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = false;
 
     return 4 as const;
@@ -2032,7 +2032,7 @@ export class CPU {
     this.#registers[register] = result;
     this.carryFlag = firstBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = false;
 
     return 2 as const;
@@ -2053,7 +2053,7 @@ export class CPU {
     this.#memory.writeByte(addr, result);
     this.carryFlag = firstBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = false;
 
     return 4 as const;
@@ -2067,7 +2067,7 @@ export class CPU {
     this.#registers[register] = result;
     this.carryFlag = false;
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = false;
 
     return 2 as const;
@@ -2088,7 +2088,7 @@ export class CPU {
     this.#memory.writeByte(addr, result);
     this.carryFlag = false;
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = false;
 
     return 4 as const;
@@ -2101,7 +2101,7 @@ export class CPU {
     this.#registers[register] = result;
     this.carryFlag = firstBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = false;
 
     return 2 as const;
@@ -2121,7 +2121,7 @@ export class CPU {
     this.#memory.writeByte(addr, result);
     this.carryFlag = firstBit === 1;
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = false;
 
     return 4 as const;
@@ -2131,7 +2131,7 @@ export class CPU {
     const val = this.#registers[register];
     const bit = getBit(val, n);
     this.zeroFlag = bit === 0;
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = true;
 
     return 2 as const;
@@ -2149,7 +2149,7 @@ export class CPU {
     const val = this.#memory.readByte(addr);
     const bit = getBit(val, n);
     this.zeroFlag = bit === 0;
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = true;
 
     return 3 as const;
@@ -2241,7 +2241,7 @@ export class CPU {
     const result = (leftOne & ~1) | lastBit;
     this.#registers.a = result;
     this.zeroFlag = false;
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = false;
     this.carryFlag = lastBit === 1;
 
@@ -2290,7 +2290,7 @@ export class CPU {
     const firstBit = 1 & a;
     this.#registers.a = (0xff & (a >> 1) & ((1 << 7) - 1)) | (firstBit << 7);
     this.zeroFlag = false;
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = false;
     this.carryFlag = firstBit === 1;
 
@@ -2338,7 +2338,7 @@ export class CPU {
     const result = (movedLeft & ~1) | (this.carryFlag ? 1 : 0);
     this.#registers.a = result;
     this.zeroFlag = false;
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = false;
     this.carryFlag = lastBit === 0 ? false : true;
 
@@ -2392,7 +2392,7 @@ export class CPU {
     const registerResult = movedRight + ((carryFlag ? 1 : 0) << 7);
     this.carryFlag = firstBit === 1 ? true : false;
     this.zeroFlag = false;
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = false;
     this.#registers.a = registerResult;
 
@@ -2443,7 +2443,7 @@ export class CPU {
 
   private DAA() {
     let a = this.#registers.a;
-    if (this.substractionFlag) {
+    if (this.subtractionFlag) {
       if (this.carryFlag) {
         a = minusWithOneByte(a, 0x60);
       }
@@ -2512,7 +2512,7 @@ export class CPU {
 
   private CPL() {
     this.#registers.a = ~this.#registers.a & 0xff;
-    this.substractionFlag = true;
+    this.subtractionFlag = true;
     this.halfCarryFlag = true;
 
     return 1 as const;
@@ -2561,7 +2561,7 @@ export class CPU {
   }
 
   private SCF() {
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = false;
     this.carryFlag = true;
 
@@ -2589,7 +2589,7 @@ export class CPU {
     const target = this.joinRegisterPair('h', 'l');
     const result = addWithDoubleByte(target, source);
     this.distributeToRegisterPair('h', 'l', result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     // yeah 12 is correct
     this.halfCarryFlag = shouldSetCarryFlag(Operation.Add, 12, target, source);
     this.carryFlag = shouldSetCarryFlag(
@@ -2627,7 +2627,7 @@ export class CPU {
 
   private CCF() {
     this.carryFlag = !this.carryFlag;
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = false;
 
     return 1 as const;
@@ -3515,7 +3515,7 @@ export class CPU {
     this.#registers.a = result;
 
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = true;
     this.carryFlag = false;
 
@@ -3541,7 +3541,7 @@ export class CPU {
     const result = addWithDoubleByte(sp, extended);
     this.#registers.sp = result;
     this.zeroFlag = false;
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     // yeah one byte is correct
     this.halfCarryFlag = shouldSetHalfCarryFlag(
       Operation.Add,
@@ -3584,7 +3584,7 @@ export class CPU {
     this.#registers.a = result;
 
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = false;
     this.carryFlag = false;
 
@@ -3631,7 +3631,7 @@ export class CPU {
     const d8 = this.readFromPcAndIncPc();
     const result = orWithOneByte(d8, this.#registers.a);
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = false;
     this.carryFlag = false;
 
@@ -3660,7 +3660,7 @@ export class CPU {
     this.distributeToRegisterPair('h', 'l', sp);
 
     this.zeroFlag = false;
-    this.substractionFlag = false;
+    this.subtractionFlag = false;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
       Operation.Add,
       BitLength.OneByte,
@@ -3705,7 +3705,7 @@ export class CPU {
     const result = minusWithOneByte(a, d8);
 
     this.zeroFlag = shouldSetZeroFlag(result);
-    this.substractionFlag = true;
+    this.subtractionFlag = true;
     this.halfCarryFlag = shouldSetHalfCarryFlag(
       Operation.Minus,
       BitLength.OneByte,
